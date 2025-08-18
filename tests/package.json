@@ -1,0 +1,25 @@
+{
+  "name": "go4me-web-tests",
+  "version": "1.0.0",
+  "description": "Test suite for go4me-web mobile optimizations and cross-browser compatibility",
+  "main": "index.js",
+  "scripts": {
+    "test": "node comprehensive-mobile-test.js",
+    "test:all": "npm run test"
+  },
+  "keywords": [
+    "testing",
+    "mobile",
+    "responsive",
+    "cross-browser",
+    "visual-regression"
+  ],
+  "author": "go4me-web team",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
