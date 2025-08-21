@@ -11,7 +11,7 @@ interface WalletDebugPanelProps {
 }
 
 export function WalletDebugPanel({ domainAddress }: WalletDebugPanelProps) {
-  const { isConnected, getCurrentAddress, chiaSignMessage, chiaGetAddress } = useJsonRpc()
+  const { isConnected, getCurrentAddress, chiaSignMessage, chiaGetAddress, chiaGetWalletAddresses } = useJsonRpc()
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<any[]>([])
   const [customMessage, setCustomMessage] = useState('')
@@ -101,6 +101,30 @@ export function WalletDebugPanel({ domainAddress }: WalletDebugPanelProps) {
     }
   }
 
+  const testGetAllAddresses = async () => {
+    setLoading(true)
+    try {
+      console.log('🔍 Testing chia_getWalletAddresses...')
+      const result = await chiaGetWalletAddresses()
+      console.log('✅ chia_getWalletAddresses result:', result)
+
+      // Check which address matches the domain
+      const matchingAddress = result.addresses.find(addr => addr === domainAddress)
+
+      addResult('chia_getWalletAddresses', {
+        ...result,
+        domainAddress,
+        matchingAddress: matchingAddress || 'No match found',
+        totalAddresses: result.addresses.length
+      })
+    } catch (error: any) {
+      console.error('❌ chia_getWalletAddresses error:', error)
+      addResult('chia_getWalletAddresses', null, error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const clearResults = () => {
     setResults([])
   }
@@ -141,6 +165,17 @@ export function WalletDebugPanel({ domainAddress }: WalletDebugPanelProps) {
           style={{ marginLeft: 8 }}
         >
           Test chia_signMessageByAddress
+        </Button>
+
+        <Button
+          color='teal'
+          size='small'
+          onClick={testGetAllAddresses}
+          loading={loading}
+          disabled={loading}
+          style={{ marginLeft: 8 }}
+        >
+          Get All Addresses
         </Button>
 
         <Button
