@@ -12,6 +12,7 @@ import { useTheme } from './_app'
 import { LinkHub } from '../components/LinkHub'
 import { WalletDebugPanel } from '../components/WalletDebugPanel'
 import { ComprehensiveWalletDebug } from '../components/ComprehensiveWalletDebug'
+import { SampleDataDebugPanel } from '../components/SampleDataDebugPanel'
 import { useJsonRpc } from '../lib/wallet/JsonRpcContext'
 // Flip component for profile avatar (front: go4me PFP, back: X image)
 function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold }) {
@@ -1185,7 +1186,10 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
             if (collectionTab === 'links') {
               return (
                 <div>
-                  <WalletDebugPanel domainAddress={xchAddress} />
+                  <SampleDataDebugPanel />
+                  <div style={{ marginTop: 20 }}>
+                    <WalletDebugPanel domainAddress={xchAddress} />
+                  </div>
                   <div style={{ marginTop: 20 }}>
                     <ComprehensiveWalletDebug />
                   </div>
