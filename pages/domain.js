@@ -11,6 +11,7 @@ import { Icon, Menu, Input, Button } from 'semantic-ui-react'
 import { useTheme } from './_app'
 import { LinkHub } from '../components/LinkHub'
 import { WalletDebugPanel } from '../components/WalletDebugPanel'
+import { ComprehensiveWalletDebug } from '../components/ComprehensiveWalletDebug'
 import { useJsonRpc } from '../lib/wallet/JsonRpcContext'
 // Flip component for profile avatar (front: go4me PFP, back: X image)
 function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold }) {
@@ -1185,6 +1186,9 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
               return (
                 <div>
                   <WalletDebugPanel domainAddress={xchAddress} />
+                  <div style={{ marginTop: 20 }}>
+                    <ComprehensiveWalletDebug />
+                  </div>
                   <div style={{ marginTop: 20 }}>
                     <LinkHub
                       username={username}
