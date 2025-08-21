@@ -60,7 +60,18 @@ export function ComprehensiveWalletDebug() {
       addResult(command, result)
     } catch (error: any) {
       console.error(`❌ ${command} error:`, error)
-      addResult(command, null, error.message)
+
+      // Categorize error types
+      let errorType = 'Unknown Error'
+      if (error.message.includes('Missing or invalid')) {
+        errorType = 'Method Not Supported'
+      } else if (error.message.includes('rejected')) {
+        errorType = 'User Rejected'
+      } else if (error.message.includes('insufficient')) {
+        errorType = 'Insufficient Funds'
+      }
+
+      addResult(command, null, `${errorType}: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -187,53 +198,53 @@ export function ComprehensiveWalletDebug() {
 
         {/* Chia Commands - Basic */}
         <Grid.Column>
-          <Header size='tiny'>Chia Commands - Basic</Header>
-          
+          <Header size='tiny'>Chia Commands - Confirmed Working</Header>
+
           <Button fluid size='mini' style={{ marginBottom: 4 }}
             onClick={() => executeCommand('chia_getAddress')}
             loading={loading} disabled={loading}>
-            chia_getAddress
+            chia_getAddress ✅
           </Button>
-          
-          <Button fluid size='mini' style={{ marginBottom: 4 }}
-            onClick={() => executeCommand('chia_getNfts', { limit: 10 })}
-            loading={loading} disabled={loading}>
-            chia_getNfts
-          </Button>
-          
-          <Button fluid size='mini' style={{ marginBottom: 4 }}
-            onClick={() => targetAddress && executeCommand('chia_signMessageByAddress', { 
-              message: customMessage, 
-              address: targetAddress 
-            })}
-            loading={loading} disabled={loading || !targetAddress}>
-            chia_signMessageByAddress
-          </Button>
-          
-          <Button fluid size='mini' style={{ marginBottom: 4 }}
-            onClick={() => targetAddress && executeCommand('chia_send', { 
-              address: targetAddress, 
-              amount: amount,
-              fee: fee
-            })}
-            loading={loading} disabled={loading || !targetAddress}>
-            chia_send
-          </Button>
-        </Grid.Column>
 
-        {/* Chia Commands - Advanced */}
-        <Grid.Column>
-          <Header size='tiny'>Chia Commands - Advanced</Header>
-          
           <Button fluid size='mini' style={{ marginBottom: 4 }}
-            onClick={() => offerString && executeCommand('chia_takeOffer', { 
+            onClick={() => targetAddress && executeCommand('chia_signMessageByAddress', {
+              message: customMessage,
+              address: targetAddress
+            })}
+            loading={loading} disabled={loading || !targetAddress}>
+            chia_signMessageByAddress ✅
+          </Button>
+
+          <Button fluid size='mini' style={{ marginBottom: 4 }}
+            onClick={() => offerString && executeCommand('chia_takeOffer', {
               offer: offerString,
               fee: fee
             })}
             loading={loading} disabled={loading || !offerString}>
-            chia_takeOffer
+            chia_takeOffer ✅
           </Button>
-          
+        </Grid.Column>
+
+        {/* Chia Commands - Experimental */}
+        <Grid.Column>
+          <Header size='tiny'>Chia Commands - Experimental</Header>
+
+          <Button fluid size='mini' style={{ marginBottom: 4 }}
+            onClick={() => executeCommand('chia_getNfts', { limit: 10 })}
+            loading={loading} disabled={loading}>
+            chia_getNfts ⚠️
+          </Button>
+
+          <Button fluid size='mini' style={{ marginBottom: 4 }}
+            onClick={() => targetAddress && executeCommand('chia_send', {
+              address: targetAddress,
+              amount: amount,
+              fee: fee
+            })}
+            loading={loading} disabled={loading || !targetAddress}>
+            chia_send ⚠️
+          </Button>
+
           <Button fluid size='mini' style={{ marginBottom: 4 }}
             onClick={() => executeCommand('chia_createOffer', {
               offerAssets: [{ assetId: '', amount: amount }],
@@ -241,18 +252,18 @@ export function ComprehensiveWalletDebug() {
               fee: fee
             })}
             loading={loading} disabled={loading}>
-            chia_createOffer
+            chia_createOffer ⚠️
           </Button>
-          
+
           <Button fluid size='mini' style={{ marginBottom: 4 }}
-            onClick={() => executeCommand('chia_cancelOffer', { 
+            onClick={() => executeCommand('chia_cancelOffer', {
               id: 'test-offer-id',
               fee: fee
             })}
             loading={loading} disabled={loading}>
-            chia_cancelOffer
+            chia_cancelOffer ⚠️
           </Button>
-          
+
           <Button fluid size='mini' style={{ marginBottom: 4 }}
             onClick={() => executeCommand('chia_bulkMintNfts', {
               did: 'test-did',
@@ -260,7 +271,7 @@ export function ComprehensiveWalletDebug() {
               fee: fee
             })}
             loading={loading} disabled={loading}>
-            chia_bulkMintNfts
+            chia_bulkMintNfts ⚠️
           </Button>
         </Grid.Column>
       </Grid>
