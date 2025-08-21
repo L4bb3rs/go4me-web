@@ -85,7 +85,7 @@ export function JsonRpcProvider({ children }: PropsWithChildren) {
 
   async function getCurrentAddress(): Promise<string | null> {
     try {
-      const result = await request<{ address: string }>(ChiaMethod.GetCurrentAddress, {})
+      const result = await request<{ address: string }>(ChiaMethod.GetAddress, {})
       return result.address || null
     } catch (error) {
       console.error('Error getting current address:', error)
