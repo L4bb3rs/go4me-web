@@ -371,7 +371,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   const [isExporting, setIsExporting] = useState(false)
 
   // Get wallet connection status from JsonRpcContext
-  const { isConnected, getConnectedAddress } = useJsonRpc()
+  const { isConnected, getConnectedAddress, getCurrentAddress } = useJsonRpc()
 
   // Determine if current user is the owner of this domain
   // Check if connected wallet address matches the domain's XCH address
@@ -379,20 +379,33 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
 
   // Check ownership when component mounts or wallet connection changes
   useEffect(() => {
-    const checkOwnership = () => {
+    const checkOwnership = async () => {
       try {
         if (isConnected()) {
-          const connectedAddress = getConnectedAddress()
-          if (connectedAddress && xchAddress && connectedAddress === xchAddress) {
+          // Try to get the current address from the wallet directly
+          const currentAddress = await getCurrentAddress()
+          const fallbackAddress = getConnectedAddress()
+
+          console.log('Checking ownership:', {
+            currentAddress,
+            fallbackAddress,
+            domainAddress: xchAddress,
+            username
+          })
+
+          // Use currentAddress if available, otherwise fallback to getConnectedAddress
+          const addressToCheck = currentAddress || fallbackAddress
+
+          if (addressToCheck && xchAddress && addressToCheck === xchAddress) {
             setIsOwner(true)
-            console.log('User is owner of domain:', username, 'Connected:', connectedAddress, 'Domain:', xchAddress)
+            console.log('✅ User is owner of domain:', username)
           } else {
             setIsOwner(false)
-            console.log('User is not owner. Connected:', connectedAddress, 'Domain:', xchAddress)
+            console.log('❌ User is not owner. Address:', addressToCheck, 'Domain:', xchAddress)
           }
         } else {
           setIsOwner(false)
-          console.log('Wallet not connected')
+          console.log('❌ Wallet not connected')
         }
       } catch (error) {
         console.error('Error checking ownership:', error)
@@ -403,9 +416,9 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
     checkOwnership()
 
     // Check ownership periodically in case wallet connection changes
-    const interval = setInterval(checkOwnership, 2000)
+    const interval = setInterval(checkOwnership, 3000)
     return () => clearInterval(interval)
-  }, [xchAddress, isConnected, getConnectedAddress, username])
+  }, [xchAddress, isConnected, getConnectedAddress, getCurrentAddress, username])
   
 
   useEffect(() => {
@@ -1158,9 +1171,11 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                 {/* Debug info - remove in production */}
                 <div style={{ marginTop: 10, fontSize: 11, color: 'var(--color-text-subtle)', fontFamily: 'monospace' }}>
                   Debug: Connected={isConnected() ? 'Yes' : 'No'} |
-                  Address={getConnectedAddress() || 'None'} |
+                  SessionAddr={getConnectedAddress() || 'None'} |
                   Domain={xchAddress} |
                   Owner={isOwner ? 'Yes' : 'No'}
+                  <br />
+                  Check console for getCurrentAddress() result
                 </div>
               </div>
             )}

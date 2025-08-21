@@ -22,6 +22,7 @@ interface ChiaSignMessageResponse {
 interface JsonRpcShape {
   chiaTakeOffer: (data: ChiaTakeOfferRequest) => Promise<{ id: string }>
   chiaSignMessage: (data: ChiaSignMessageRequest) => Promise<ChiaSignMessageResponse>
+  getCurrentAddress: () => Promise<string | null>
   getConnectedAddress: () => string | null
   isConnected: () => boolean
 }
@@ -82,14 +83,49 @@ export function JsonRpcProvider({ children }: PropsWithChildren) {
     return result
   }
 
+  async function getCurrentAddress(): Promise<string | null> {
+    try {
+      const result = await request<{ address: string }>(ChiaMethod.GetCurrentAddress, {})
+      return result.address || null
+    } catch (error) {
+      console.error('Error getting current address:', error)
+      return null
+    }
+  }
+
   function getConnectedAddress(): string | null {
     if (!session || !accounts || accounts.length === 0) {
       return null
     }
     // Extract address from account string (format: "chia:mainnet:address")
     const account = accounts[0]
-    const parts = account.split(':')
-    return parts.length >= 3 ? parts[2] : null
+    console.log('Raw account data:', account, 'Type:', typeof account)
+
+    // Handle different possible formats
+    if (typeof account === 'string') {
+      // If it's already a chia address, return it
+      if (account.startsWith('xch1')) {
+        return account
+      }
+      // If it's in "chia:mainnet:address" format, extract the address
+      const parts = account.split(':')
+      if (parts.length >= 3) {
+        return parts[2]
+      }
+    }
+
+    // If account is an object, it might have an address property
+    if (typeof account === 'object' && account !== null) {
+      if ('address' in account) {
+        return (account as any).address
+      }
+      if ('account' in account) {
+        return (account as any).account
+      }
+    }
+
+    console.warn('Unable to extract address from account:', account)
+    return null
   }
 
   function isConnected(): boolean {
@@ -100,6 +136,7 @@ export function JsonRpcProvider({ children }: PropsWithChildren) {
     <JsonRpcContext.Provider value={{
       chiaTakeOffer,
       chiaSignMessage,
+      getCurrentAddress,
       getConnectedAddress,
       isConnected
     }}>
