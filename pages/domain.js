@@ -372,7 +372,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   const [isExporting, setIsExporting] = useState(false)
 
   // Get wallet connection status from JsonRpcContext
-  const { isConnected, getConnectedAddress, getCurrentAddress, chiaGetAddress } = useJsonRpc()
+  const { isConnected, getConnectedAddress, getCurrentAddress, chiaGetAddress, chiaSignMessage } = useJsonRpc()
 
   // Determine if current user is the owner of this domain
   // Check if connected wallet address matches the domain's XCH address
@@ -383,7 +383,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
     const checkOwnership = async () => {
       try {
         if (isConnected()) {
-          // Get the current address from the wallet using chia_getAddress
+          // Get the current address from the connected wallet
           const result = await chiaGetAddress()
           const walletAddress = result.address
 
@@ -394,6 +394,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
             match: walletAddress === xchAddress
           })
 
+          // Simple address comparison - this is the correct approach
           if (walletAddress && xchAddress && walletAddress === xchAddress) {
             setIsOwner(true)
             console.log('✅ User is owner of domain:', username, 'Address:', walletAddress)

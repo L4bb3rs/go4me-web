@@ -14,6 +14,7 @@ export function WalletDebugPanel({ domainAddress }: WalletDebugPanelProps) {
   const { isConnected, getCurrentAddress, chiaSignMessage, chiaGetAddress } = useJsonRpc()
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<any[]>([])
+  const [customMessage, setCustomMessage] = useState('')
 
   const addResult = (method: string, result: any, error?: any) => {
     const timestamp = new Date().toLocaleTimeString()
@@ -63,6 +64,38 @@ export function WalletDebugPanel({ domainAddress }: WalletDebugPanelProps) {
     } catch (error: any) {
       console.error('❌ chia_signMessageByAddress error:', error)
       addResult('chia_signMessageByAddress', null, error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const testCustomMessage = async () => {
+    setLoading(true)
+    try {
+      // Get the current address from the wallet
+      const addressResult = await chiaGetAddress()
+      const currentAddress = addressResult.address
+
+      if (!currentAddress) {
+        throw new Error('Could not get current address from wallet')
+      }
+
+      const messageToSign = customMessage || `Custom message at ${Date.now()}`
+      console.log('🔍 Testing custom message signing...', { message: messageToSign, address: currentAddress })
+
+      const result = await chiaSignMessage({
+        message: messageToSign,
+        address: currentAddress
+      })
+
+      console.log('✅ Custom message signed:', result)
+      addResult('chia_signMessageByAddress (custom)', {
+        message: messageToSign,
+        ...result
+      })
+    } catch (error: any) {
+      console.error('❌ Custom message signing error:', error)
+      addResult('chia_signMessageByAddress (custom)', null, error.message)
     } finally {
       setLoading(false)
     }

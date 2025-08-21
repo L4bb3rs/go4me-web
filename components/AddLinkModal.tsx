@@ -5,23 +5,23 @@
 import { useState } from 'react'
 import { Modal, Form, Button, Message, Dropdown, Icon } from 'semantic-ui-react'
 import { LINK_ICONS, LinkIconType } from '../lib/types/links'
-import { signLinkCreation } from '../lib/wallet-connect-signing'
+import { useJsonRpc } from '../lib/wallet/JsonRpcContext'
 
 interface AddLinkModalProps {
   username: string
-  chiaSignMessage: (data: { message: string; address: string }) => Promise<{ signature: string; message: string; address: string }>
-  getConnectedAddress: () => string | null
   onClose: () => void
   onLinkAdded: () => void
 }
 
-export function AddLinkModal({ username, chiaSignMessage, getConnectedAddress, onClose, onLinkAdded }: AddLinkModalProps) {
+export function AddLinkModal({ username, onClose, onLinkAdded }: AddLinkModalProps) {
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
   const [description, setDescription] = useState('')
   const [selectedIcon, setSelectedIcon] = useState<LinkIconType>('custom')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const { chiaSignMessage, chiaGetAddress, isConnected } = useJsonRpc()
 
   // Create dropdown options for icons
   const iconOptions = Object.entries(LINK_ICONS).map(([key, emoji]) => ({
@@ -55,8 +55,7 @@ export function AddLinkModal({ username, chiaSignMessage, getConnectedAddress, o
       return false
     }
 
-    const walletAddress = getConnectedAddress()
-    if (!walletAddress) {
+    if (!isConnected()) {
       setError('Wallet not connected')
       return false
     }
@@ -69,22 +68,31 @@ export function AddLinkModal({ username, chiaSignMessage, getConnectedAddress, o
       return
     }
 
-    const walletAddress = getConnectedAddress()
-    if (!walletAddress) {
-      setError('Wallet not connected')
-      return
-    }
-
     setLoading(true)
     setError(null)
 
     try {
-      // Sign the link creation request
-      const signResult = await signLinkCreation(chiaSignMessage, username, walletAddress)
+      // Get the wallet address
+      const addressResult = await chiaGetAddress()
+      const walletAddress = addressResult.address
 
-      if (!signResult.success) {
-        throw new Error(signResult.error || 'Failed to sign request')
+      if (!walletAddress) {
+        throw new Error('Could not get wallet address')
       }
+
+      // Create the message to sign
+      const timestamp = Date.now()
+      const message = `Create link for ${username} at ${timestamp}`
+
+      console.log('🔍 Signing link creation request:', { message, address: walletAddress })
+
+      // Sign the message
+      const signResult = await chiaSignMessage({
+        message,
+        address: walletAddress
+      })
+
+      console.log('✅ Link creation signed:', signResult)
 
       // Submit the link to the API
       const response = await fetch('/api/links/create', {
@@ -98,7 +106,7 @@ export function AddLinkModal({ username, chiaSignMessage, getConnectedAddress, o
           description: description.trim() || undefined,
           icon: LINK_ICONS[selectedIcon],
           signature: signResult.signature,
-          message: signResult.message,
+          message: message,
           address: walletAddress,
           username
         })
@@ -109,11 +117,20 @@ export function AddLinkModal({ username, chiaSignMessage, getConnectedAddress, o
         throw new Error(errorData.error || 'Failed to create link')
       }
 
+      const result = await response.json()
+      console.log('✅ Link created successfully:', result)
+
       // Success!
       onLinkAdded()
     } catch (err: any) {
-      console.error('Error creating link:', err)
-      setError(err.message || 'Failed to create link')
+      console.error('❌ Error creating link:', err)
+
+      // Handle user rejection gracefully
+      if (err.message && err.message.toLowerCase().includes('rejected')) {
+        setError('Signature request was rejected. Please try again.')
+      } else {
+        setError(err.message || 'Failed to create link')
+      }
     } finally {
       setLoading(false)
     }
@@ -180,7 +197,7 @@ export function AddLinkModal({ username, chiaSignMessage, getConnectedAddress, o
             </Message>
           )}
 
-          {!getConnectedAddress() && (
+          {!isConnected() && (
             <Message warning>
               <Message.Header>Wallet Not Connected</Message.Header>
               <p>Please connect your wallet to add links.</p>
@@ -197,7 +214,7 @@ export function AddLinkModal({ username, chiaSignMessage, getConnectedAddress, o
           primary
           onClick={handleSubmit}
           loading={loading}
-          disabled={!getConnectedAddress() || loading}
+          disabled={!isConnected() || loading}
         >
           <Icon name='checkmark' />
           Add Link

@@ -229,8 +229,6 @@ export function LinkHub({ username, isOwner = false, rootHostForLinks }: LinkHub
       {showAddModal && (
         <AddLinkModal
           username={username}
-          chiaSignMessage={chiaSignMessage}
-          getConnectedAddress={getConnectedAddress}
           onClose={() => setShowAddModal(false)}
           onLinkAdded={handleLinkAdded}
         />
