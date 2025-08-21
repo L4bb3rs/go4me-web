@@ -6,8 +6,12 @@ import { useState } from 'react'
 import { Button, Message, Segment, Header, Divider } from 'semantic-ui-react'
 import { useJsonRpc } from '../lib/wallet/JsonRpcContext'
 
-export function WalletDebugPanel() {
-  const { isConnected, getCurrentAddress, chiaSignMessage } = useJsonRpc()
+interface WalletDebugPanelProps {
+  domainAddress?: string
+}
+
+export function WalletDebugPanel({ domainAddress }: WalletDebugPanelProps) {
+  const { isConnected, getCurrentAddress, chiaSignMessage, chiaGetAddress } = useJsonRpc()
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<any[]>([])
 
@@ -25,10 +29,10 @@ export function WalletDebugPanel() {
   const testGetAddress = async () => {
     setLoading(true)
     try {
-      console.log('🔍 Testing chia_getAddress...')
-      const address = await getCurrentAddress()
-      console.log('✅ chia_getAddress result:', address)
-      addResult('chia_getAddress', { address })
+      console.log('🔍 Testing chia_getAddress (no params)...')
+      const result = await chiaGetAddress()
+      console.log('✅ chia_getAddress result:', result)
+      addResult('chia_getAddress', result)
     } catch (error: any) {
       console.error('❌ chia_getAddress error:', error)
       addResult('chia_getAddress', null, error.message)
@@ -40,20 +44,20 @@ export function WalletDebugPanel() {
   const testSignMessage = async () => {
     setLoading(true)
     try {
-      // First get the address
-      const address = await getCurrentAddress()
-      if (!address) {
-        throw new Error('No address available')
+      // First get the current address from the wallet
+      const currentAddress = await getCurrentAddress()
+      if (!currentAddress) {
+        throw new Error('Could not get current address from wallet')
       }
 
       const testMessage = `Test message at ${Date.now()}`
-      console.log('🔍 Testing chia_signMessageByAddress...', { message: testMessage, address })
-      
+      console.log('🔍 Testing chia_signMessageByAddress...', { message: testMessage, address: currentAddress })
+
       const result = await chiaSignMessage({
         message: testMessage,
-        address: address
+        address: currentAddress
       })
-      
+
       console.log('✅ chia_signMessageByAddress result:', result)
       addResult('chia_signMessageByAddress', result)
     } catch (error: any) {

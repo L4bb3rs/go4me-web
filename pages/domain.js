@@ -372,7 +372,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   const [isExporting, setIsExporting] = useState(false)
 
   // Get wallet connection status from JsonRpcContext
-  const { isConnected, getConnectedAddress, getCurrentAddress } = useJsonRpc()
+  const { isConnected, getConnectedAddress, getCurrentAddress, chiaGetAddress } = useJsonRpc()
 
   // Determine if current user is the owner of this domain
   // Check if connected wallet address matches the domain's XCH address
@@ -383,26 +383,23 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
     const checkOwnership = async () => {
       try {
         if (isConnected()) {
-          // Try to get the current address from the wallet directly
-          const currentAddress = await getCurrentAddress()
-          const fallbackAddress = getConnectedAddress()
+          // Get the current address from the wallet using chia_getAddress
+          const result = await chiaGetAddress()
+          const walletAddress = result.address
 
           console.log('Checking ownership:', {
-            currentAddress,
-            fallbackAddress,
+            walletAddress,
             domainAddress: xchAddress,
-            username
+            username,
+            match: walletAddress === xchAddress
           })
 
-          // Use currentAddress if available, otherwise fallback to getConnectedAddress
-          const addressToCheck = currentAddress || fallbackAddress
-
-          if (addressToCheck && xchAddress && addressToCheck === xchAddress) {
+          if (walletAddress && xchAddress && walletAddress === xchAddress) {
             setIsOwner(true)
-            console.log('✅ User is owner of domain:', username)
+            console.log('✅ User is owner of domain:', username, 'Address:', walletAddress)
           } else {
             setIsOwner(false)
-            console.log('❌ User is not owner. Address:', addressToCheck, 'Domain:', xchAddress)
+            console.log('❌ User is not owner. Wallet:', walletAddress, 'Domain:', xchAddress)
           }
         } else {
           setIsOwner(false)
@@ -1186,7 +1183,7 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
             if (collectionTab === 'links') {
               return (
                 <div>
-                  <WalletDebugPanel />
+                  <WalletDebugPanel domainAddress={xchAddress} />
                   <div style={{ marginTop: 20 }}>
                     <LinkHub
                       username={username}

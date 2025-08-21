@@ -14,14 +14,14 @@ interface ChiaSignMessageRequest {
 }
 
 interface ChiaSignMessageResponse {
+  publicKey: string
   signature: string
-  message: string
-  address: string
 }
 
 interface JsonRpcShape {
   chiaTakeOffer: (data: ChiaTakeOfferRequest) => Promise<{ id: string }>
   chiaSignMessage: (data: ChiaSignMessageRequest) => Promise<ChiaSignMessageResponse>
+  chiaGetAddress: () => Promise<{ address: string }>
   getCurrentAddress: () => Promise<string | null>
   getConnectedAddress: () => string | null
   isConnected: () => boolean
@@ -83,9 +83,14 @@ export function JsonRpcProvider({ children }: PropsWithChildren) {
     return result
   }
 
+  async function chiaGetAddress(): Promise<{ address: string }> {
+    const result = await request<{ address: string }>(ChiaMethod.GetAddress, {})
+    return result
+  }
+
   async function getCurrentAddress(): Promise<string | null> {
     try {
-      const result = await request<{ address: string }>(ChiaMethod.GetAddress, {})
+      const result = await chiaGetAddress()
       return result.address || null
     } catch (error) {
       console.error('Error getting current address:', error)
@@ -136,6 +141,7 @@ export function JsonRpcProvider({ children }: PropsWithChildren) {
     <JsonRpcContext.Provider value={{
       chiaTakeOffer,
       chiaSignMessage,
+      chiaGetAddress,
       getCurrentAddress,
       getConnectedAddress,
       isConnected
