@@ -10,6 +10,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Icon, Menu, Input, Button } from 'semantic-ui-react'
 import { useTheme } from './_app'
 import { LinkHub } from '../components/LinkHub'
+import { useJsonRpc } from '../lib/wallet/JsonRpcContext'
 // Flip component for profile avatar (front: go4me PFP, back: X image)
 function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold }) {
   const [isFlipped, setIsFlipped] = useState(false)
@@ -369,6 +370,9 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   const [query, setQuery] = useState(initialQuery || '')
   const [isExporting, setIsExporting] = useState(false)
 
+  // Get wallet connection status from JsonRpcContext
+  const { isConnected, getConnectedAddress } = useJsonRpc()
+
   // Determine if current user is the owner of this domain
   // Check if connected wallet address matches the domain's XCH address
   const [isOwner, setIsOwner] = useState(false)
@@ -377,16 +381,18 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   useEffect(() => {
     const checkOwnership = () => {
       try {
-        // Get connected wallet address from JsonRpcContext
-        if (typeof window !== 'undefined' && window.walletConnect) {
-          const connectedAddress = window.walletConnect.getConnectedAddress?.()
+        if (isConnected()) {
+          const connectedAddress = getConnectedAddress()
           if (connectedAddress && xchAddress && connectedAddress === xchAddress) {
             setIsOwner(true)
+            console.log('User is owner of domain:', username, 'Connected:', connectedAddress, 'Domain:', xchAddress)
           } else {
             setIsOwner(false)
+            console.log('User is not owner. Connected:', connectedAddress, 'Domain:', xchAddress)
           }
         } else {
           setIsOwner(false)
+          console.log('Wallet not connected')
         }
       } catch (error) {
         console.error('Error checking ownership:', error)
@@ -399,7 +405,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
     // Check ownership periodically in case wallet connection changes
     const interval = setInterval(checkOwnership, 2000)
     return () => clearInterval(interval)
-  }, [xchAddress])
+  }, [xchAddress, isConnected, getConnectedAddress, username])
   
 
   useEffect(() => {
@@ -1147,7 +1153,16 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                 </div>
               </div>
             ) : (
-              <span>Create your custom link-in-bio page. Connect your wallet to add and manage links.</span>
+              <div>
+                <span>Create your custom link-in-bio page. Connect your wallet to add and manage links.</span>
+                {/* Debug info - remove in production */}
+                <div style={{ marginTop: 10, fontSize: 11, color: 'var(--color-text-subtle)', fontFamily: 'monospace' }}>
+                  Debug: Connected={isConnected() ? 'Yes' : 'No'} |
+                  Address={getConnectedAddress() || 'None'} |
+                  Domain={xchAddress} |
+                  Owner={isOwner ? 'Yes' : 'No'}
+                </div>
+              </div>
             )}
           </div>
           {(() => {
