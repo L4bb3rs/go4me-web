@@ -9,6 +9,7 @@ import { getSupabaseClient } from '../lib/supabaseClient'
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Icon, Menu, Input, Button } from 'semantic-ui-react'
 import { useTheme } from './_app'
+import { LinkHub } from '../components/LinkHub'
 // Flip component for profile avatar (front: go4me PFP, back: X image)
 function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold }) {
   const [isFlipped, setIsFlipped] = useState(false)
@@ -350,7 +351,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   const showMarmotBadge = xchAddress === MARMOT_BADGE_XCH
   const [copiedXch, setCopiedXch] = useState(false)
   const [copiedDid, setCopiedDid] = useState(false)
-  const [collectionTab, setCollectionTab] = useState('my') // 'my' | 'others'
+  const [collectionTab, setCollectionTab] = useState('my') // 'my' | 'others' | 'links'
   // Infinite scroll state
   const [ownedList, setOwnedList] = useState(() => ownedPfps)
   const [ownedPage, setOwnedPage] = useState(1) // next page index (0 preloaded)
@@ -367,6 +368,38 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   const [rawSearch, setRawSearch] = useState(initialQuery || '')
   const [query, setQuery] = useState(initialQuery || '')
   const [isExporting, setIsExporting] = useState(false)
+
+  // Determine if current user is the owner of this domain
+  // Check if connected wallet address matches the domain's XCH address
+  const [isOwner, setIsOwner] = useState(false)
+
+  // Check ownership when component mounts or wallet connection changes
+  useEffect(() => {
+    const checkOwnership = () => {
+      try {
+        // Get connected wallet address from JsonRpcContext
+        if (typeof window !== 'undefined' && window.walletConnect) {
+          const connectedAddress = window.walletConnect.getConnectedAddress?.()
+          if (connectedAddress && xchAddress && connectedAddress === xchAddress) {
+            setIsOwner(true)
+          } else {
+            setIsOwner(false)
+          }
+        } else {
+          setIsOwner(false)
+        }
+      } catch (error) {
+        console.error('Error checking ownership:', error)
+        setIsOwner(false)
+      }
+    }
+
+    checkOwnership()
+
+    // Check ownership periodically in case wallet connection changes
+    const interval = setInterval(checkOwnership, 2000)
+    return () => clearInterval(interval)
+  }, [xchAddress])
   
 
   useEffect(() => {
@@ -1079,11 +1112,19 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
             >
               Other Owners ({othersTotalCount || 0})
             </Menu.Item>
+            <Menu.Item
+              name='links'
+              active={collectionTab === 'links'}
+              onClick={() => setCollectionTab('links')}
+            >
+              <Icon name='linkify' size='small' style={{ marginRight: 6 }} />
+              Links
+            </Menu.Item>
           </Menu>
           <div style={{ margin: '4px 0 18px', fontSize: 13, lineHeight: 1.4, color: 'var(--color-text-subtle)', maxWidth: 1100 }}>
             {collectionTab === 'my' ? (
               <span>Send go4me PFPs to the address above and they will show up here.</span>
-            ) : (
+            ) : collectionTab === 'others' ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <span style={{ flex: '1 1 auto' }}>These collectors own your PFP. Why not return the favor?</span>
                 <div style={{ flex: '0 0 auto' }}>
@@ -1105,9 +1146,22 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                   </Button>
                 </div>
               </div>
+            ) : (
+              <span>Create your custom link-in-bio page. Connect your wallet to add and manage links.</span>
             )}
           </div>
           {(() => {
+            // Show LinkHub for links tab
+            if (collectionTab === 'links') {
+              return (
+                <LinkHub
+                  username={username}
+                  isOwner={isOwner}
+                  rootHostForLinks={rootHostForLinks}
+                />
+              )
+            }
+
             const list = collectionTab === 'my' ? ownedList : othersList
             if (!list || list.length === 0) {
               return <div style={{ textAlign: 'center', opacity: 0.55, fontSize: 14 }}>{collectionTab === 'my' ? 'No owned PFPs to display yet.' : 'No other owner PFPs to display.'}</div>

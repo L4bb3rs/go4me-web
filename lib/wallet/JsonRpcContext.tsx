@@ -8,14 +8,28 @@ interface ChiaTakeOfferRequest {
   fee?: number | string
 }
 
+interface ChiaSignMessageRequest {
+  message: string
+  address: string
+}
+
+interface ChiaSignMessageResponse {
+  signature: string
+  message: string
+  address: string
+}
+
 interface JsonRpcShape {
   chiaTakeOffer: (data: ChiaTakeOfferRequest) => Promise<{ id: string }>
+  chiaSignMessage: (data: ChiaSignMessageRequest) => Promise<ChiaSignMessageResponse>
+  getConnectedAddress: () => string | null
+  isConnected: () => boolean
 }
 
 export const JsonRpcContext = createContext<JsonRpcShape>({} as JsonRpcShape)
 
 export function JsonRpcProvider({ children }: PropsWithChildren) {
-  const { client, session, chainId } = useWalletConnect()
+  const { client, session, chainId, accounts } = useWalletConnect()
   const { isAvailable: gobyAvailable, isConnected: gobyConnected, request: gobyRequest, connect: gobyConnect } = useGoby()
 
   // Mobile detection - disable Goby functionality on mobile
@@ -63,8 +77,32 @@ export function JsonRpcProvider({ children }: PropsWithChildren) {
     return await request<{ id: string }>(ChiaMethod.TakeOffer, data)
   }
 
+  async function chiaSignMessage(data: ChiaSignMessageRequest): Promise<ChiaSignMessageResponse> {
+    const result = await request<ChiaSignMessageResponse>(ChiaMethod.SignMessageByAddress, data)
+    return result
+  }
+
+  function getConnectedAddress(): string | null {
+    if (!session || !accounts || accounts.length === 0) {
+      return null
+    }
+    // Extract address from account string (format: "chia:mainnet:address")
+    const account = accounts[0]
+    const parts = account.split(':')
+    return parts.length >= 3 ? parts[2] : null
+  }
+
+  function isConnected(): boolean {
+    return !!(client && session && accounts && accounts.length > 0)
+  }
+
   return (
-    <JsonRpcContext.Provider value={{ chiaTakeOffer }}>
+    <JsonRpcContext.Provider value={{
+      chiaTakeOffer,
+      chiaSignMessage,
+      getConnectedAddress,
+      isConnected
+    }}>
       {children}
     </JsonRpcContext.Provider>
   )
