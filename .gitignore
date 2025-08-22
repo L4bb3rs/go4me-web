@@ -177,3 +177,8 @@ yarn.lock.bak
 *.cert
 *.crt
 .DS_Store?
+
+# ================================
+# Development Data Files
+# ================================
+.domain-verifications.json

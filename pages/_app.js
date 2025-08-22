@@ -21,7 +21,7 @@ function MyApp({ Component, pageProps }) {
       document.documentElement.setAttribute('data-theme', preferred)
     } catch {}
 
-    // Comprehensive WalletConnect error suppression
+    // Comprehensive WalletConnect error suppression + React warnings
     const isWalletConnectMessage = (val) => {
       if (!val) return false
       if (typeof val === 'string') {
@@ -35,7 +35,13 @@ function MyApp({ Component, pageProps }) {
           val.includes('onRelayEventResponse') ||
           val.includes('core/pairing') ||
           val.includes('@walletconnect/core') ||
-          val.includes('@walletconnect/sign-client')
+          val.includes('@walletconnect/sign-client') ||
+          // Suppress Semantic UI React warnings
+          val.includes('findDOMNode is deprecated') ||
+          val.includes('RefFindNode') ||
+          val.includes('findDOMNode was passed an instance') ||
+          val.includes('findDOMNode is deprecated in StrictMode') ||
+          val.includes('Instead, add a ref directly to the element')
         )
       }
       if (val && typeof val === 'object') {
@@ -47,12 +53,16 @@ function MyApp({ Component, pageProps }) {
 
     const isWalletConnectError = (...args) => args.some(isWalletConnectMessage)
 
-    // Override window.onerror to catch all errors
+    // Override window.onerror to catch all errors including React warnings
     const originalOnError = window.onerror
     window.onerror = (message, source, lineno, colno, error) => {
       const errorMessage = String(message || error?.message || error || '')
       if (isWalletConnectError(errorMessage) || isWalletConnectError(source || '')) {
         return true // Prevent default error handling
+      }
+      // Also suppress findDOMNode warnings
+      if (errorMessage.includes('findDOMNode') || errorMessage.includes('RefFindNode')) {
+        return true
       }
       if (originalOnError) return originalOnError(message, source, lineno, colno, error)
       return false
@@ -79,6 +89,22 @@ function MyApp({ Component, pageProps }) {
       const message = args.join(' ')
       if (isWalletConnectError(message)) return
       originalConsoleLog.apply(console, args)
+    }
+
+    // Override React's warning system for development
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      const originalConsoleWarnReact = console.warn
+      console.warn = (...args) => {
+        const message = args.join(' ')
+        // Suppress React findDOMNode warnings
+        if (message.includes('findDOMNode') ||
+            message.includes('RefFindNode') ||
+            message.includes('Instead, add a ref directly')) {
+          return
+        }
+        if (isWalletConnectError(message)) return
+        originalConsoleWarnReact.apply(console, args)
+      }
     }
 
     // Suppress Next.js dev overlay errors for WalletConnect

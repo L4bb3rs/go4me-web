@@ -28,6 +28,36 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Production-ready WASM support for chia-wallet-sdk
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      layers: true,
+      topLevelAwait: true,
+    }
+
+    // WASM file handling with proper fallbacks
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'webassembly/async',
+    })
+
+    // Ensure WASM files are properly resolved
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      crypto: false,
+    }
+
+    // Handle WASM imports in Node.js environment
+    if (isServer) {
+      config.externals = config.externals || []
+      config.externals.push({
+        'chia-wallet-sdk-wasm': 'chia-wallet-sdk-wasm'
+      })
+    }
+
     // Development optimizations
     if (dev) {
       config.optimization.removeAvailableModules = false

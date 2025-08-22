@@ -14,8 +14,9 @@ import { WalletDebugPanel } from '../components/WalletDebugPanel'
 import { ComprehensiveWalletDebug } from '../components/ComprehensiveWalletDebug'
 import { SampleDataDebugPanel } from '../components/SampleDataDebugPanel'
 import { useJsonRpc } from '../lib/wallet/JsonRpcContext'
+import { DomainOwnershipVerification } from '../components/DomainOwnershipVerification'
 // Flip component for profile avatar (front: go4me PFP, back: X image)
-function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold }) {
+function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref }) {
   const [isFlipped, setIsFlipped] = useState(false)
   const [isTouch, setIsTouch] = useState(false)
 
@@ -65,11 +66,11 @@ function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold 
           <div style={faceStyle}>
             {linkHref ? (
               <a href={linkHref} target='_blank' rel='noreferrer noopener' aria-label={username ? `Open full-size avatar for ${username}` : 'Open full-size avatar'} style={{ position: 'absolute', inset: 0 }}>
-                <Image src={avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
+                <Image src={avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} priority />
               </a>
             ) : (
               <div style={{ position: 'absolute', inset: 0 }}>
-                <Image src={avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
+                <Image src={avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} priority />
               </div>
             )}
           </div>
@@ -374,7 +375,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   const [isExporting, setIsExporting] = useState(false)
 
   // Get wallet connection status from JsonRpcContext
-  const { isConnected, getConnectedAddress, getCurrentAddress, chiaGetAddress, chiaSignMessage } = useJsonRpc()
+  const { isConnected, getConnectedAddress, getCurrentAddress, chiaGetAddress } = useJsonRpc()
 
   // Determine if current user is the owner of this domain
   // Check if connected wallet address matches the domain's XCH address
@@ -389,24 +390,28 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
           const result = await chiaGetAddress()
           const walletAddress = result.address
 
-          console.log('Checking ownership:', {
-            walletAddress,
-            domainAddress: xchAddress,
-            username,
-            match: walletAddress === xchAddress
-          })
-
           // Simple address comparison - this is the correct approach
-          if (walletAddress && xchAddress && walletAddress === xchAddress) {
-            setIsOwner(true)
-            console.log('✅ User is owner of domain:', username, 'Address:', walletAddress)
-          } else {
-            setIsOwner(false)
-            console.log('❌ User is not owner. Wallet:', walletAddress, 'Domain:', xchAddress)
-          }
+          const isOwnerNow = walletAddress && xchAddress && walletAddress === xchAddress
+
+          setIsOwner(prevIsOwner => {
+            // Only log when ownership status changes
+            if (prevIsOwner !== isOwnerNow) {
+              if (isOwnerNow) {
+                console.log('✅ User is now owner of domain:', username, 'Address:', walletAddress)
+              } else {
+                console.log('❌ User is not owner. Wallet:', walletAddress, 'Domain:', xchAddress)
+              }
+            }
+            return isOwnerNow
+          })
         } else {
-          setIsOwner(false)
-          console.log('❌ Wallet not connected')
+          setIsOwner(prevIsOwner => {
+            // Only log when changing from connected to disconnected
+            if (prevIsOwner) {
+              console.log('❌ Wallet disconnected')
+            }
+            return false
+          })
         }
       } catch (error) {
         console.error('Error checking ownership:', error)
@@ -415,10 +420,6 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
     }
 
     checkOwnership()
-
-    // Check ownership periodically in case wallet connection changes
-    const interval = setInterval(checkOwnership, 3000)
-    return () => clearInterval(interval)
   }, [xchAddress, isConnected, getConnectedAddress, getCurrentAddress, username])
   
 
@@ -838,7 +839,7 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
   <div className={styles.profileHeader} style={{ marginTop: '1rem', width: '100%', maxWidth: 1100, marginLeft: 'auto', marginRight: 'auto', alignSelf: 'stretch' }}>
       <div className={styles.profileLeft}>
             <div className={styles.avatarWrap} style={{ width: 225, height: 225 }}>
-  <DomainPfpFlip avatarUrl={avatarUrl} xPfpUrl={xPfpUrl} username={username} linkHref={avatarUrl || undefined} rankCopiesSold={user?.rankCopiesSold} />
+  <DomainPfpFlip avatarUrl={avatarUrl} xPfpUrl={xPfpUrl} username={username} linkHref={avatarUrl || undefined} />
             </div>
             {/* Centered Badge Score under avatar */}
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
@@ -1055,6 +1056,23 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                     )
                   })()}
                 </div>
+
+                {/* Domain Ownership Verification */}
+                {xchAddress && (
+                  <div style={{ marginTop: 8 }}>
+                    <DomainOwnershipVerification
+                      domain={username}
+                      expectedAddress={xchAddress}
+                      onVerificationComplete={(verified, address) => {
+                        if (verified) {
+                          console.log('Domain ownership verified for:', address)
+                          // No need to reload - component will update its own state
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+
                 {lastOfferId && user?.lastOfferStatus === 0 && (
                   <div className={styles.desktopOfferSection}>
                     <div className={styles.offerLabel}>

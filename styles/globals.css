@@ -24,11 +24,14 @@ body {
 :root {
   --color-bg: #ffffff;
   --color-bg-alt: #fafafa;
+  --color-bg-secondary: #f8f9fa;
   --color-text: #111111;
   --color-text-subtle: #555555;
   --color-border: #e5e5e5;
   --color-link: #0070f3;
   --color-link-hover: #3291ff;
+  --color-primary: #0070f3;
+  --color-success: #21ba45;
   --color-card-bg: #ffffff;
   --color-rank-badge-bg: rgba(0,0,0,0.65);
   /* badge theme variables */
@@ -44,11 +47,14 @@ body {
 [data-theme='dark'] {
   --color-bg: #0f1115;
   --color-bg-alt: #171b21;
+  --color-bg-secondary: #1a1f26;
   --color-text: #f5f7fa;
   --color-text-subtle: #a0acba;
   --color-border: #2a313b;
   --color-link: #3182f6;
   --color-link-hover: #4b92ff;
+  --color-primary: #3182f6;
+  --color-success: #16ab39;
   --color-card-bg: #171b21;
   --color-rank-badge-bg: rgba(255,255,255,0.28);
   /* badge theme variables */
@@ -98,6 +104,92 @@ a {
 [data-theme='dark'] .ui.input > input::placeholder {
   color: var(--color-text-subtle) !important;
   opacity: 1;
+}
+
+/* Dark mode: Modal theming */
+[data-theme='dark'] .ui.modal {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+[data-theme='dark'] .ui.modal > .header {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+[data-theme='dark'] .ui.modal > .content {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
+}
+
+[data-theme='dark'] .ui.modal > .actions {
+  background: var(--color-bg) !important;
+  border-top: 1px solid var(--color-border) !important;
+}
+
+[data-theme='dark'] .ui.segment {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+[data-theme='dark'] .ui.message {
+  background: var(--color-bg-alt) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Domain verification button theming */
+.domain-verify-button.ui.button {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+  transition: all 0.2s ease !important;
+}
+
+.domain-verify-button.ui.button:hover:not(:disabled) {
+  background: var(--color-bg-alt) !important;
+  border-color: var(--color-link) !important;
+  color: var(--color-text) !important;
+}
+
+.domain-verify-button.ui.button:disabled {
+  background: var(--color-bg) !important;
+  color: var(--color-text-subtle) !important;
+  border-color: var(--color-border) !important;
+  opacity: 0.6 !important;
+}
+
+.domain-verify-button.ui.button i.icon {
+  color: var(--color-text-subtle) !important;
+}
+
+.domain-verify-button.ui.button:hover:not(:disabled) i.icon {
+  color: var(--color-link) !important;
+}
+
+/* Domain verified button theming */
+.domain-verified-button.ui.button {
+  background: var(--color-success) !important;
+  color: white !important;
+  border: 1px solid var(--color-success) !important;
+  transition: all 0.2s ease !important;
+}
+
+.domain-verified-button.ui.button:hover:not(:disabled) {
+  background: #16ab39 !important;
+  border-color: #16ab39 !important;
+  color: white !important;
+}
+
+.domain-verified-button.ui.button i.icon {
+  color: white !important;
+}
+
+.domain-verified-button.ui.button:hover:not(:disabled) i.icon {
+  color: white !important;
 }
 [data-theme='dark'] .ui.icon.input > i.icon {
   color: var(--color-text-subtle) !important;
