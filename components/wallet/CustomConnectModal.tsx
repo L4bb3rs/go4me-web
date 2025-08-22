@@ -11,10 +11,10 @@ function GobyButton({ onConnected }: { onConnected?: () => void }) {
     if (isConnected) onConnected?.()
   }, [isConnected, onConnected])
 
-  // Detect mobile devices - hide Goby button on mobile
+  // Detect mobile devices - hide Goby button on mobile using standardised breakpoint
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => setIsMobile(window.innerWidth <= 767)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
@@ -80,10 +80,10 @@ function GobyButton({ onConnected }: { onConnected?: () => void }) {
 }
 
 function SupportedWalletsList() {
-  // Mobile detection
+  // Mobile detection using standardised breakpoint
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => setIsMobile(window.innerWidth <= 767)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)

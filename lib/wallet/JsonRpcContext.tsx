@@ -18,10 +18,10 @@ export function JsonRpcProvider({ children }: PropsWithChildren) {
   const { client, session, chainId } = useWalletConnect()
   const { isAvailable: gobyAvailable, isConnected: gobyConnected, request: gobyRequest, connect: gobyConnect } = useGoby()
 
-  // Mobile detection - disable Goby functionality on mobile
+  // Mobile detection - disable Goby functionality on mobile using standardised breakpoint
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => setIsMobile(window.innerWidth <= 767)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)

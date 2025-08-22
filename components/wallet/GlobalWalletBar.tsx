@@ -25,18 +25,18 @@ export default function GlobalWalletBar({ inline = false }: { inline?: boolean }
   const isConnectedAny = !!session || (gobyConnected && !isMobile)
   const primaryAccount = useMemo(() => (gobyConnected && !isMobile ? (gobyAccounts?.[0] || '') : (accounts?.[0] || '')), [gobyConnected, gobyAccounts, accounts, isMobile])
 
-  // Mobile detection
+  // Mobile detection using standardised breakpoint
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => setIsMobile(window.innerWidth <= 767)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Track mobile vs desktop for responsive sizing
+  // Track mobile vs desktop for responsive sizing using standardised breakpoint
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const mq = window.matchMedia('(max-width: 640px)')
+    const mq = window.matchMedia('(max-width: 767px)')
     const update = () => setIsMobile(mq.matches)
     update()
     mq.addEventListener('change', update)

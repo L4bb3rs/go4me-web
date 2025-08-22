@@ -125,7 +125,7 @@ function PfpFlipCard({ user, rootHostForLinks, idx }) {
                     src={user.avatarUrl}
                     alt={commonAlt}
                     fill
-                    sizes="(max-width: 640px) 150px, 200px"
+                    sizes="(max-width: 767px) 150px, 200px"
                     style={{ objectFit: 'cover' }}
                     priority={idx < 4}
                     fetchPriority={idx < 4 ? 'high' : 'auto'}
@@ -140,7 +140,7 @@ function PfpFlipCard({ user, rootHostForLinks, idx }) {
                   src={user.avatarUrl}
                   alt={commonAlt}
                   fill
-                  sizes="(max-width: 640px) 150px, 200px"
+                  sizes="(max-width: 767px) 150px, 200px"
                   style={{ objectFit: 'cover' }}
                   priority={idx < 4}
                   fetchPriority={idx < 4 ? 'high' : 'auto'}

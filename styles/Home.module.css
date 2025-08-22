@@ -246,28 +246,32 @@
 }
 
 /* Desktop: optimize badge layout */
-@media (min-width: 641px) {
+@media (min-width: 768px) {
   .badgeRow { gap: 6px; }
   .miniBadge { font-size: 11px; padding: 5px 7px; gap: 4px; }
   .miniBadge img { width: 16px !important; height: 16px !important; }
 }
 
-/* Mobile optimizations for badges */
-@media (max-width: 900px) {
+/* Mobile and tablet optimizations for badges */
+@media (max-width: 767px) {
   .badgeRow {
     gap: 4px;
   }
 
   /* Mobile Claim Banner - more subtle and pushed below sticky header */
   .mobileClaimBanner {
-  .domainPage .avatarWrap { width: 225px !important; height: 225px !important; }
     display: block !important;
     margin: 60px auto 8px !important;
-    max-width: 1100px !important;
+    max-width: 100% !important;
     background: rgba(59, 130, 246, 0.05) !important;
     border: 1px solid rgba(59, 130, 246, 0.15) !important;
     border-radius: 8px !important;
     padding: 8px 12px !important;
+  }
+
+  .domainPage .avatarWrap {
+    width: 225px !important;
+    height: 225px !important;
   }
 
   .miniBadge {
@@ -481,13 +485,15 @@
 }
 
 /* CRITICAL MOBILE FIXES */
-@media (max-width: 480px) {
+/* Small mobile optimizations */
+@media (max-width: 479px) {
   .container {
     padding: 0 1rem !important; /* Reduce from 2rem to 1rem */
   }
 }
 
-@media (max-width: 640px) {
+/* Mobile and tablet optimizations */
+@media (max-width: 767px) {
   .lbGrid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
   .lbCard { padding: 6px 6px 8px; }
   .username { font-size: 14px; } /* Increased from 13px for better readability */
@@ -566,7 +572,8 @@
   100% { background-position: 0 50%; }
 }
 
-@media (max-width: 600px) {
+/* Mobile and tablet optimizations */
+@media (max-width: 767px) {
   .grid {
     width: 100%;
     flex-direction: column;
@@ -731,7 +738,8 @@
   border-color: #10b981 !important;
 }
 
-@media (max-width: 1100px) {
+/* Tablet and mobile layout adjustments */
+@media (max-width: 1023px) {
   .profileHeader { flex-direction: column; gap: 12px; align-items: center; }
   .profileLeft { width: auto; align-items: center; }
   .avatarWrap { width: 180px; height: 180px; } /* Reduce from 225px */
@@ -798,24 +806,23 @@
   white-space: pre-line;
 }
 
-@media (max-width: 1100px) {
+/* Tablet and mobile description adjustments */
+@media (max-width: 1023px) {
   .profileDescription {
     font-size: 16px;
     text-align: center !important;
     line-height: 1.2;
   }
-}
 
-/* Ensure address and offer/mint sections remain centered on medium screens too */
-@media (max-width: 1100px) {
+  /* Ensure address and offer/mint sections remain centered on medium screens too */
   .domainPage .addressContainer,
   .domainPage .desktopOfferSection,
   .domainPage .offerButtons { justify-content: center !important; }
   .domainPage .profileRight .badgeRow { justify-content: center !important; }
 }
 
-/* Medium mobile - adjust title and username size */
-@media (max-width: 768px) {
+/* Mobile - adjust title and username size */
+@media (max-width: 767px) {
   .profileTitle {
     font-size: 1.8rem;
     text-align: center;
@@ -827,7 +834,8 @@
   }
 }
 
-@media (max-width: 480px) {
+/* Small mobile optimizations */
+@media (max-width: 479px) {
   .profileDescription {
     font-size: 14px;
     text-align: center !important;
@@ -843,12 +851,10 @@
     font-size: 14px;
     text-align: center;
   }
-
-
 }
 
-/* Additional mobile optimizations for profile pages */
-@media (max-width: 640px) {
+/* Mobile and tablet profile optimizations */
+@media (max-width: 767px) {
   .profileHeader {
     gap: 12px;
     margin-top: 60px !important; /* Add top margin to avoid sticky header overlap */
@@ -930,7 +936,7 @@
 
 /* ADDITIONAL MOBILE FIXES */
 /* Ultra-small mobile optimizations */
-@media (max-width: 375px) {
+@media (max-width: 360px) {
   .lbGrid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
     gap: 8px !important;
@@ -951,8 +957,6 @@
     width: 100px !important;
     height: 100px !important;
   }
-
-
 
   .profileRight div[style*="fontSize: 24px"] {
     font-size: 12px !important; /* Even smaller @username */
@@ -1023,7 +1027,8 @@
   .desktopClaimButton { display: none !important; }
 }
 
-@media (max-width: 480px) {
+/* Small mobile optimizations */
+@media (max-width: 479px) {
   .ctaButton {
     padding: 12px 18px !important;
     font-size: 0.9rem !important;
@@ -1073,8 +1078,8 @@
   .domainPage .profileRight .badgeRow { justify-content: center !important; }
 }
 
-/* Improve touch targets */
-@media (max-width: 640px) {
+/* Improve touch targets - Mobile and tablet */
+@media (max-width: 767px) {
   .lbCard {
     min-height: 44px !important; /* Ensure cards are tappable */
   }
@@ -1230,7 +1235,7 @@
 }
 
 /* Domain page specific mobile overrides: move XCH/DID/Offer links back to top and remove bottom sticky nav */
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .domainPage .mobileActionButtons { display: block !important; }
   .domainPage .mobileBottomBar { display: none !important; }
   /* Remove extra padding since bottom bar is hidden */
@@ -1247,7 +1252,7 @@
 }
 
 /* Also ensure avatar remains full size for tablet widths on domain page */
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .domainPage .avatarWrap { width: 225px !important; height: 225px !important; }
   /* Center address and offer/mint sections across tablet/smaller widths */
   .domainPage .addressContainer,

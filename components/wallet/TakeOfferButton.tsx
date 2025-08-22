@@ -22,10 +22,10 @@ export function TakeOfferButton({ offerId, children, className, title, ariaLabel
   const [busy, setBusy] = useState(false)
   const [resultId, setResultId] = useState<string | null>(null)
 
-  // Mobile detection - hide Goby functionality on mobile
+  // Mobile detection - hide Goby functionality on mobile using standardised breakpoint
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => setIsMobile(window.innerWidth <= 767)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
