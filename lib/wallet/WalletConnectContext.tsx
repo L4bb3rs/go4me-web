@@ -133,7 +133,7 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
       setIsConnecting(false)
       if (!('message' in e)) setError('WalletConnect error')
     }
-  }, [client, onSessionConnected, purgeAllPairings, hardResetCore, isConnecting])
+  }, [client, onSessionConnected, isConnecting])
 
   const disconnect = useCallback(async () => {
     try {

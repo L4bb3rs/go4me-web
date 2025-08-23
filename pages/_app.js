@@ -38,6 +38,10 @@ function MyApp({ Component, pageProps }) {
           val.includes('@walletconnect/core') ||
           val.includes('@walletconnect/sign-client')
         )
+      }
+      return false
+    }
+
     let cleanupFn
 
     // Only enable error suppression in production to keep dev snappy
