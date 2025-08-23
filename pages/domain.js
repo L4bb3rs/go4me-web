@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import styles from '../styles/Home.module.css'
 import GlobalWalletBar from '../components/wallet/GlobalWalletBar'
 import { TakeOfferButton } from '../components/wallet/TakeOfferButton'
@@ -60,11 +61,11 @@ function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold 
           <div style={faceStyle}>
             {linkHref ? (
               <a href={linkHref} target='_blank' rel='noreferrer noopener' aria-label={username ? `Open full-size avatar for ${username}` : 'Open full-size avatar'} style={{ position: 'absolute', inset: 0 }}>
-                <Image src={avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
+                <Image src={avatarUrl} alt={commonAlt} fill sizes="(max-width: 640px) 172px, (max-width: 1024px) 200px, 225px" style={{ objectFit: 'cover' }} quality={85} />
               </a>
             ) : (
               <div style={{ position: 'absolute', inset: 0 }}>
-                <Image src={avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
+                <Image src={avatarUrl} alt={commonAlt} fill sizes="(max-width: 640px) 172px, (max-width: 1024px) 200px, 225px" style={{ objectFit: 'cover' }} quality={85} />
               </div>
             )}
           </div>
@@ -74,12 +75,12 @@ function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold 
             {linkHref ? (
               <a href={linkHref} target='_blank' rel='noreferrer noopener' aria-label={username ? `Open full-size avatar for ${username}` : 'Open full-size avatar'} style={{ position: 'absolute', inset: 0 }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', width: '88%', height: '88%', transform: 'translate(-50%, -50%)', borderRadius: '50%', overflow: 'hidden' }}>
-                  <Image src={xPfpUrl || avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
+                  <Image src={xPfpUrl || avatarUrl} alt={commonAlt} fill sizes="(max-width: 640px) 172px, (max-width: 1024px) 200px, 225px" style={{ objectFit: 'cover' }} quality={85} />
                 </div>
               </a>
             ) : (
               <div style={{ position: 'absolute', top: '50%', left: '50%', width: '88%', height: '88%', transform: 'translate(-50%, -50%)', borderRadius: '50%', overflow: 'hidden' }}>
-                <Image src={xPfpUrl || avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
+                <Image src={xPfpUrl || avatarUrl} alt={commonAlt} fill sizes="(max-width: 640px) 172px, (max-width: 1024px) 200px, 225px" style={{ objectFit: 'cover' }} quality={85} />
               </div>
             )}
           </div>
@@ -149,12 +150,12 @@ function PfpFlipThumb({
             {profileHref ? (
               <a href={profileHref} aria-label={username ? `Open ${username}.go4.me` : 'Open profile'}>
                 <div style={{ position: 'absolute', inset: 0 }}>
-                  <Image src={frontUrl} alt={commonAlt} fill sizes="180px" style={{ objectFit: 'cover' }} />
+                  <Image src={frontUrl} alt={commonAlt} fill sizes="(max-width: 640px) 150px, (max-width: 1024px) 172px, 180px" style={{ objectFit: 'cover' }} quality={80} />
                 </div>
               </a>
             ) : (
               <div style={{ position: 'absolute', inset: 0 }}>
-                <Image src={frontUrl} alt={commonAlt} fill sizes="180px" style={{ objectFit: 'cover' }} />
+                <Image src={frontUrl} alt={commonAlt} fill sizes="(max-width: 640px) 150px, (max-width: 1024px) 172px, 180px" style={{ objectFit: 'cover' }} quality={80} />
               </div>
             )}
           </div>
@@ -163,12 +164,12 @@ function PfpFlipThumb({
             {profileHref ? (
               <a href={profileHref} aria-label={username ? `Open ${username}.go4.me` : 'Open profile'} style={{ position: 'absolute', inset: 0 }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', width: '80%', height: '80%', transform: 'translate(-50%, -50%)', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.25)' }}>
-                  <Image src={backUrl} alt={commonAlt} fill sizes="180px" style={{ objectFit: 'cover' }} />
+                  <Image src={backUrl} alt={commonAlt} fill sizes="(max-width: 640px) 120px, (max-width: 1024px) 138px, 144px" style={{ objectFit: 'cover' }} quality={80} />
                 </div>
               </a>
             ) : (
               <div style={{ position: 'absolute', top: '50%', left: '50%', width: '80%', height: '80%', transform: 'translate(-50%, -50%)', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.25)' }}>
-                <Image src={backUrl} alt={commonAlt} fill sizes="180px" style={{ objectFit: 'cover' }} />
+                <Image src={backUrl} alt={commonAlt} fill sizes="(max-width: 640px) 120px, (max-width: 1024px) 138px, 144px" style={{ objectFit: 'cover' }} quality={80} />
               </div>
             )}
           </div>
@@ -338,7 +339,8 @@ export async function getServerSideProps(ctx) {
   return { props: { user, ownedPfps, otherOwners, ownedHasMore, othersHasMore, pageSize: PAGE_SIZE, rootHostForLinks, ownedCount, othersCount, initialQuery: searchQ } }
 }
 
-export default function DomainPage({ user, ownedPfps = [], otherOwners = [], ownedHasMore = false, othersHasMore = false, pageSize = 60, rootHostForLinks, ownedCount = 0, othersCount = 0, initialQuery = '' }) {
+export default function DomainPage({ user, ownedPfps = [], otherOwners = [], ownedHasMore = false, othersHasMore = false, userOffers = [], pageSize = 60, rootHostForLinks, ownedCount = 0, othersCount = 0, initialQuery = '' }) {
+  const router = useRouter()
   const { username, fullName, description, avatarUrl, xPfpUrl, xchAddress, didAddress, lastOfferId, totalBadgeScore = 0 } = user
   const formattedBadgeScore = useMemo(() => {
     const n = Number(totalBadgeScore)
@@ -542,8 +544,11 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
       ogImage = `${scheme}://${rootHostForLinks}${ogImage}`
     }
   }
+
+
   const metaTitle = fullName ? `${fullName} (@${username}) on go4.me` : `@${username} on go4.me`
   const metaDesc = description ? description.slice(0, 200) : 'Claim your free, custom go4.me PFP and earn royalties whenever others purchase it.'
+  const pageTitle = `${username}.go4.me`
 
   // removed birthday confetti logic
 
@@ -686,7 +691,8 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   return (
     <div className={`${styles.container} ${styles.domainPage}`}>
       <Head>
-        <title>{`${username}.go4.me`}</title>
+        <title>{pageTitle}</title>
+        <meta name="description" content={metaDesc} />
         <link rel="icon" href="/collection-icon.png" />
         {/* Open Graph / Twitter Card Meta */}
         {pageUrl && <link rel="canonical" href={pageUrl} />}
@@ -702,17 +708,47 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
         <meta name="twitter:description" content={metaDesc} />
         <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:site" content="@go4mebot" />
+
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ProfilePage",
+              "mainEntity": {
+                "@type": "Person",
+                "name": fullName || username,
+                "alternateName": `@${username}`,
+                "description": description || `${username}'s go4.me profile - Chia NFT collector and trader`,
+                "image": ogImage,
+                "url": pageUrl,
+                "sameAs": xPfpUrl ? [`https://x.com/${username}`] : undefined
+              },
+              "about": {
+                "@type": "Thing",
+                "name": "Chia NFT Collection",
+                "description": "go4.me PFP collection and marketplace"
+              },
+              "isPartOf": {
+                "@type": "WebSite",
+                "name": "go4.me",
+                "url": "https://go4.me/"
+              }
+            })
+          }}
+        />
       </Head>
   {/* Sticky top bar with centered search */}
   <div className={styles.stickyTopbar}>
         {rootHostForLinks ? (
           <a href={`//${rootHostForLinks}/`} aria-label="Back to leaderboard home" className={styles.topNavLink}>
-            <Image src="/collection-icon.png" alt="go4.me" width={40} height={40} />
+            <Image src="/collection-icon.png" alt="go4.me" width={40} height={40} quality={90} />
             ← Back
           </a>
         ) : (
           <Link href="/" aria-label="Back to leaderboard home" className={styles.topNavLink}>
-            <Image src="/collection-icon.png" alt="go4.me" width={40} height={40} />
+            <Image src="/collection-icon.png" alt="go4.me" width={40} height={40} quality={90} />
             ← Back
           </Link>
         )}
@@ -863,6 +899,7 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                                 width={64}
                                 height={64}
                                 style={{ objectFit: 'cover' }}
+                                quality={85}
                               />
                             </div>
                           </a>
@@ -1066,20 +1103,63 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
   <div style={{ marginTop: 30, width: '100%', maxWidth: 1100, marginLeft: 'auto', marginRight: 'auto', alignSelf: 'stretch' }}>
           <Menu secondary pointing style={{ marginBottom: 10 }}>
             <Menu.Item
+              as='a'
+              href={`?tab=my`}
               name='my'
               active={collectionTab === 'my'}
-              onClick={() => setCollectionTab('my')}
+              onClick={(e) => {
+                e.preventDefault()
+                setCollectionTab('my')
+                router.push({ pathname: router.pathname, query: { ...router.query, tab: 'my' } }, undefined, { shallow: true })
+              }}
             >
               My Collection ({ownedTotalCount || 0})
             </Menu.Item>
             <Menu.Item
+              as='a'
+              href={`?tab=others`}
               name='others'
               active={collectionTab === 'others'}
-              onClick={() => setCollectionTab('others')}
+              onClick={(e) => {
+                e.preventDefault()
+                setCollectionTab('others')
+                router.push({ pathname: router.pathname, query: { ...router.query, tab: 'others' } }, undefined, { shallow: true })
+              }}
             >
               Other Owners ({othersTotalCount || 0})
             </Menu.Item>
+            <Menu.Item
+              as='a'
+              href={`?tab=offers`}
+              name='offers'
+              active={collectionTab === 'offers'}
+              onClick={(e) => {
+                e.preventDefault()
+                setCollectionTab('offers')
+                router.push({ pathname: router.pathname, query: { ...router.query, tab: 'offers' } }, undefined, { shallow: true })
+              }}
+            >
+              <Icon name='handshake' size='small' style={{ marginRight: 4 }} />
+              Offers ({actualOffersCount})
+            </Menu.Item>
           </Menu>
+
+          {/* Mobile Dropdown */}
+          <div className={styles.mobileTabSelector}>
+            <select
+              value={collectionTab}
+              onChange={(e) => {
+                const newTab = e.target.value
+                setCollectionTab(newTab)
+                router.push({ pathname: router.pathname, query: { ...router.query, tab: newTab } }, undefined, { shallow: true })
+              }}
+              className={styles.mobileTabDropdown}
+            >
+              <option value="my">My Collection ({ownedTotalCount || 0})</option>
+              <option value="others">Other Owners ({othersTotalCount || 0})</option>
+              <option value="offers">Offers ({actualOffersCount})</option>
+            </select>
+          </div>
           <div style={{ margin: '4px 0 18px', fontSize: 13, lineHeight: 1.4, color: 'var(--color-text-subtle)', maxWidth: 1100 }}>
             {collectionTab === 'my' ? (
               <span>Send go4me PFPs to the address above and they will show up here.</span>
@@ -1108,6 +1188,16 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
             )}
           </div>
           {(() => {
+            // Render offers tab
+            if (collectionTab === 'offers') {
+              return <OffersTab
+                username={username}
+                rootHostForLinks={rootHostForLinks}
+                offers={userOffers}
+              />
+            }
+
+            // Render collection tabs (my/others)
             const list = collectionTab === 'my' ? ownedList : othersList
             if (!list || list.length === 0) {
               return <div style={{ textAlign: 'center', opacity: 0.55, fontSize: 14 }}>{collectionTab === 'my' ? 'No owned PFPs to display yet.' : 'No other owner PFPs to display.'}</div>
@@ -1256,6 +1346,7 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                           width={32}
                           height={32}
                           style={{ objectFit: 'cover' }}
+                          quality={85}
                         />
                       </div>
                     </a>
