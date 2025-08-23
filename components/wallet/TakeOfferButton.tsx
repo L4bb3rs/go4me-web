@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useJsonRpc } from '../../lib/wallet/JsonRpcContext'
 import { useWalletConnect } from '../../lib/wallet/WalletConnectContext'
 import { useGoby } from '../../lib/wallet/GobyContext'
 import { useToast } from '../ui/Toast'
+import { useMobileDetection } from '../../lib/hooks/useDebounceResize'
 
 type Props = {
   offerId: string
@@ -17,19 +18,13 @@ type Props = {
 export function TakeOfferButton({ offerId, children, className, title, ariaLabel, labelDefault = 'Dexie', labelWhenSage = 'Take Offer' }: Props) {
   const { chiaTakeOffer } = useJsonRpc()
   const { session, connect, reset } = useWalletConnect()
-  const { isAvailable: gobyAvailable, isConnected: gobyConnected, connect: gobyConnect } = useGoby()
-  const { showToast } = useToast()
+  const { isConnected: gobyConnected } = useGoby()
+  const { showToast, showTransactionSuccess } = useToast() as any
   const [busy, setBusy] = useState(false)
   const [resultId, setResultId] = useState<string | null>(null)
 
   // Mobile detection - hide Goby functionality on mobile
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  const isMobile = useMobileDetection(768)
 
   // Consider the user "connected" if either Goby (desktop only) or WalletConnect is connected
   const isConnectedAny = (gobyConnected && !isMobile) || !!session
@@ -37,12 +32,8 @@ export function TakeOfferButton({ offerId, children, className, title, ariaLabel
   async function handleClick() {
     setBusy(true); setResultId(null)
     try {
-      // Prefer connecting Goby if available and not on mobile
-      if (gobyAvailable && !gobyConnected && !isMobile) {
-        try { await gobyConnect() } catch {}
-      }
-      // Otherwise, ensure WalletConnect session exists
-      if (!(gobyConnected && !isMobile) && !session) {
+      // Simple logic: if nothing connected, pop out connection modal
+      if (!session && !(gobyConnected && !isMobile)) {
         await connect()
       }
 

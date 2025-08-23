@@ -35,7 +35,15 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
   const [qrCodeUri, setQrCodeUri] = useState<string>('')
   const [isConnecting, setIsConnecting] = useState(false)
 
-  const reset = useCallback(() => { setSession(undefined); setAccounts([]); setError(null) }, [])
+  const reset = useCallback(() => {
+    setSession(undefined);
+    setAccounts([]);
+    setError(null);
+    // Also clear any stale UI state
+    setShowModal(false);
+    setIsConnecting(false);
+    setQrCodeUri('');
+  }, [])
 
   const onSessionConnected = useCallback((sess: SessionTypes.Struct) => {
     const allNamespaceAccounts = Object.values(sess.namespaces).map((ns) => ns.accounts).flat()
@@ -63,10 +71,34 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
         k.includes('core:pairing') ||
         k.includes('core:history') ||
         k.includes('core:expirer') ||
-        k.includes('core:messages')
+        k.includes('core:messages') ||
+        k.includes('core:session')
       ))
       for (const k of toRemove) {
         try { await storage.removeItem(k) } catch {}
+      }
+    } catch {}
+  }, [])
+
+  // Clear all sessions from client storage
+  const clearAllSessions = useCallback(async (c: Client) => {
+    try {
+      // Clear all sessions from the client
+      const sessions = c.session.getAll()
+      for (const session of sessions) {
+        try {
+          c.session.delete(session.topic, getSdkError('USER_DISCONNECTED'))
+        } catch {}
+      }
+
+      // Also clear session-related storage directly
+      const storage = (c as any).core?.storage
+      if (storage && storage.getKeys) {
+        const keys: string[] = await storage.getKeys()
+        const sessionKeys = keys.filter(k => k.includes('session'))
+        for (const k of sessionKeys) {
+          try { await storage.removeItem(k) } catch {}
+        }
       }
     } catch {}
   }, [])
@@ -108,8 +140,9 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
       if (client && session) {
         await client.disconnect({ topic: session.topic, reason: getSdkError('USER_DISCONNECTED') })
       }
-      // Purge all pairings after disconnect to avoid stale state
+      // Clear all sessions and pairings after disconnect to avoid stale state
       if (client) {
+        try { await clearAllSessions(client) } catch {}
         try { purgeAllPairings(client) } catch {}
       }
     } catch (e: any) {
@@ -117,7 +150,7 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
     } finally {
       reset()
     }
-  }, [client, session, purgeAllPairings, reset])
+  }, [client, session, clearAllSessions, purgeAllPairings, reset])
 
   const subscribeToEvents = useCallback(async (c: Client) => {
     c.on('session_update', ({ topic, params }) => {
@@ -138,44 +171,8 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
       // Quiet noisy logs from underlying client; handle per-request errors in callers
     })
 
-    // Add global error handlers to suppress WalletConnect internal errors
-    if (typeof window !== 'undefined') {
-      const originalConsoleError = console.error
-      console.error = (...args: any[]) => {
-        const message = args.join(' ')
-        // Suppress specific WalletConnect errors that are noise
-        if (message.includes('No matching key') ||
-            message.includes('pairing: undefined') ||
-            message.includes('getRecord') ||
-            message.includes('cleanupDuplicatePairings') ||
-            message.includes('onSessionSettleRequest') ||
-            message.includes('onRelayEventResponse')) {
-          return // silently ignore
-        }
-        originalConsoleError.apply(console, args)
-      }
-
-      // Handle unhandled promise rejections from WalletConnect
-      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-        const message = event.reason?.message || String(event.reason)
-        if (message.includes('No matching key') ||
-            message.includes('pairing: undefined') ||
-            message.includes('getRecord') ||
-            message.includes('cleanupDuplicatePairings') ||
-            message.includes('onSessionSettleRequest') ||
-            message.includes('onRelayEventResponse')) {
-          event.preventDefault() // prevent the error from showing
-          return
-        }
-      }
-      window.addEventListener('unhandledrejection', handleUnhandledRejection)
-
-      // Store cleanup function
-      ;(c as any)._cleanup = () => {
-        console.error = originalConsoleError
-        window.removeEventListener('unhandledrejection', handleUnhandledRejection)
-      }
-    }
+    // Global error suppression is centralised in pages/_app.js for production only.
+    // No additional console/error overrides are set here to keep behaviour consistent across the app.
   }, [onSessionConnected, reset])
 
   const checkPersistedState = useCallback(async (c: Client) => {
@@ -184,8 +181,21 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
     if (c.session.length) {
       const lastKeyIndex = c.session.keys.length - 1
       const sess = c.session.get(c.session.keys[lastKeyIndex])
-      onSessionConnected(sess)
-      return sess
+
+      // Validate session before restoring it
+      try {
+        // Check if session is expired
+        if (sess.expiry && sess.expiry * 1000 < Date.now()) {
+          try { c.session.delete(sess.topic, getSdkError('USER_DISCONNECTED')) } catch {}
+          return
+        }
+
+        // Session appears valid, restore it
+        onSessionConnected(sess)
+        return sess
+      } catch (e: any) {
+        try { c.session.delete(sess.topic, getSdkError('USER_DISCONNECTED')) } catch {}
+      }
     }
   }, [session, onSessionConnected])
 
@@ -250,9 +260,19 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
       try {
         const sessions = client.session.getAll()
         if (sessions.length > 0 && !session) {
-          // Session exists but not in current context - sync it
+          // Session exists but not in current context - validate and sync it
           const latestSession = sessions[sessions.length - 1]
-          onSessionConnected(latestSession)
+
+          // Validate session before syncing
+          try {
+            if (latestSession.expiry && latestSession.expiry * 1000 < Date.now()) {
+              try { client.session.delete(latestSession.topic, getSdkError('USER_DISCONNECTED')) } catch {}
+              return
+            }
+            onSessionConnected(latestSession)
+          } catch (e: any) {
+            try { client.session.delete(latestSession.topic, getSdkError('USER_DISCONNECTED')) } catch {}
+          }
         } else if (sessions.length === 0 && session) {
           // Session was disconnected in another tab - sync disconnect
           reset()

@@ -21,6 +21,7 @@ function MyApp({ Component, pageProps }) {
       document.documentElement.setAttribute('data-theme', preferred)
     } catch {}
 
+
     // Comprehensive WalletConnect error suppression
     const isWalletConnectMessage = (val) => {
       if (!val) return false
@@ -37,9 +38,59 @@ function MyApp({ Component, pageProps }) {
           val.includes('@walletconnect/core') ||
           val.includes('@walletconnect/sign-client')
         )
+    let cleanupFn
+
+    // Only enable error suppression in production to keep dev snappy
+    if (process.env.NODE_ENV === 'production') {
+      // Ultra-optimized WalletConnect error suppression with caching and fast string matching
+      const errorCache = new Map()
+      const maxCacheSize = 100
+
+      // Use simple string includes for faster matching than regex
+      const walletConnectKeywords = [
+        'No matching key',
+        'pairing: undefined',
+        'cleanupDuplicatePairings',
+        'onSessionSettleRequest',
+        'getData',
+        'getRecord',
+        'onRelayEventResponse',
+        'core/pairing',
+        'history:',
+        'webpack-internal',
+        '@walletconnect/core',
+        '@walletconnect/sign-client'
+      ]
+
+      const isWalletConnectError = (message) => {
+        if (!message || typeof message !== 'string') return false
+
+        // Specific suppression: WalletConnect verify frame CSP noise
+        // Example: Refused to frame 'https://verify.walletconnect.com/' because an ancestor violates the following Content Security Policy directive: "frame-ancestors ..."
+        if (message.includes('verify.walletconnect.com') && (message.includes('Refused to frame') || message.includes('frame-ancestors'))) {
+          return true
+        }
+
+        // Check cache first
+        if (errorCache.has(message)) {
+          return errorCache.get(message)
+        }
+
+        // Fast string matching instead of regex
+        const isError = walletConnectKeywords.some(keyword => message.includes(keyword))
+
+        // Cache result with size limit
+        if (errorCache.size >= maxCacheSize) {
+          const firstKey = errorCache.keys().next().value
+          errorCache.delete(firstKey)
+        }
+        errorCache.set(message, isError)
+
+        return isError
+
       }
       if (val && typeof val === 'object') {
-        if (val.message && typeof val.message === 'string') return isWalletConnectMessage(val.message)
+        if (val.message && typeof val.message === 'string') return isWalletConnectError(val.message)
         if (val.context && typeof val.context === 'string' && val.context.startsWith('core')) return true
       }
       return false
