@@ -10,7 +10,14 @@ type Props = {
   labelWhenSage?: string // Not used since Mintgarden doesn't support WalletConnect
 }
 
-export function TakeMintgardenOfferButton({ offerId, children, className, title, ariaLabel, labelDefault = 'Mintgarden' }: Props) {
+export function TakeMintgardenOfferButton({
+  offerId,
+  children,
+  className,
+  title,
+  ariaLabel,
+  labelDefault = 'Mintgarden',
+}: Props) {
   // Mintgarden doesn't support WalletConnect offer taking, so we don't need wallet state
 
   function handleClick() {

@@ -95,6 +95,7 @@ Results are saved to:
 - `tests/reports/` - HTML reports for review
 
 #### Viewing Reports
+
 ```bash
 # Open latest HTML report in browser
 ./view-test-reports.sh

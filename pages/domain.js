@@ -10,7 +10,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Icon, Menu, Input, Button } from 'semantic-ui-react'
 import { useTheme } from './_app'
 // Flip component for profile avatar (front: go4me PFP, back: X image)
-function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold }) {
+function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold: _rankCopiesSold }) {
   const [isFlipped, setIsFlipped] = useState(false)
   const [isTouch, setIsTouch] = useState(false)
 
@@ -28,7 +28,7 @@ function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold 
     transformStyle: 'preserve-3d',
     transition: 'transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1)',
     willChange: 'transform',
-    transform: (isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)') + ' translateZ(0)'
+    transform: (isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)') + ' translateZ(0)',
   }
   const faceStyle = {
     position: 'absolute',
@@ -37,29 +37,44 @@ function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold 
     WebkitBackfaceVisibility: 'hidden',
     transform: 'translateZ(0)',
     borderRadius: 12,
-    overflow: 'hidden'
+    overflow: 'hidden',
   }
   const backStyle = {
     ...faceStyle,
     transform: 'rotateY(180deg)',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   }
 
   return (
     <div
       style={{ position: 'relative', width: '100%', height: '100%' }}
-      onMouseEnter={() => { if (!isTouch) setIsFlipped(true) }}
-      onMouseLeave={() => { if (!isTouch) setIsFlipped(false) }}
-      onClick={(e) => { if (isTouch) { e.preventDefault(); setIsFlipped(v => !v) } }}
+      onMouseEnter={() => {
+        if (!isTouch) setIsFlipped(true)
+      }}
+      onMouseLeave={() => {
+        if (!isTouch) setIsFlipped(false)
+      }}
+      onClick={(e) => {
+        if (isTouch) {
+          e.preventDefault()
+          setIsFlipped((v) => !v)
+        }
+      }}
     >
       <div style={{ position: 'absolute', inset: 0, perspective: 1000 }}>
         <div style={flipInnerStyle}>
           {/* Front */}
           <div style={faceStyle}>
             {linkHref ? (
-              <a href={linkHref} target='_blank' rel='noreferrer noopener' aria-label={username ? `Open full-size avatar for ${username}` : 'Open full-size avatar'} style={{ position: 'absolute', inset: 0 }}>
+              <a
+                href={linkHref}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={username ? `Open full-size avatar for ${username}` : 'Open full-size avatar'}
+                style={{ position: 'absolute', inset: 0 }}
+              >
                 <Image src={avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
               </a>
             ) : (
@@ -72,13 +87,41 @@ function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold 
           {/* Back: Original PFP in a circle mask */}
           <div style={backStyle} className={styles.backfaceHidden}>
             {linkHref ? (
-              <a href={linkHref} target='_blank' rel='noreferrer noopener' aria-label={username ? `Open full-size avatar for ${username}` : 'Open full-size avatar'} style={{ position: 'absolute', inset: 0 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', width: '88%', height: '88%', transform: 'translate(-50%, -50%)', borderRadius: '50%', overflow: 'hidden' }}>
+              <a
+                href={linkHref}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={username ? `Open full-size avatar for ${username}` : 'Open full-size avatar'}
+                style={{ position: 'absolute', inset: 0 }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '88%',
+                    height: '88%',
+                    transform: 'translate(-50%, -50%)',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                  }}
+                >
                   <Image src={xPfpUrl || avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
                 </div>
               </a>
             ) : (
-              <div style={{ position: 'absolute', top: '50%', left: '50%', width: '88%', height: '88%', transform: 'translate(-50%, -50%)', borderRadius: '50%', overflow: 'hidden' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '88%',
+                  height: '88%',
+                  transform: 'translate(-50%, -50%)',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                }}
+              >
                 <Image src={xPfpUrl || avatarUrl} alt={commonAlt} fill sizes="225px" style={{ objectFit: 'cover' }} />
               </div>
             )}
@@ -90,12 +133,7 @@ function DomainPfpFlip({ avatarUrl, xPfpUrl, username, linkHref, rankCopiesSold 
 }
 
 // Flip component for collection grid thumbnails (cards)
-function PfpFlipThumb({
-  frontUrl,
-  backUrl,
-  username,
-  profileHref,
-}) {
+function PfpFlipThumb({ frontUrl, backUrl, username, profileHref }) {
   const [isFlipped, setIsFlipped] = useState(false)
   const [isTouch, setIsTouch] = useState(false)
 
@@ -113,32 +151,41 @@ function PfpFlipThumb({
     transformStyle: 'preserve-3d',
     transition: 'transform 360ms cubic-bezier(0.2, 0.7, 0.2, 1)',
     willChange: 'transform',
-    transform: (isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)') + ' translateZ(0)'
+    transform: (isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)') + ' translateZ(0)',
   }
   const faceStyle = {
     position: 'absolute',
     inset: 0,
     backfaceVisibility: 'hidden',
     WebkitBackfaceVisibility: 'hidden',
-  transform: 'translateZ(0)',
+    transform: 'translateZ(0)',
     borderRadius: 8,
-    overflow: 'hidden'
+    overflow: 'hidden',
   }
   const backStyle = {
     ...faceStyle,
     transform: 'rotateY(180deg)',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   }
 
   return (
     <div
       className={styles.cardImgWrap}
       style={{ position: 'relative' }}
-      onMouseEnter={() => { if (!isTouch) setIsFlipped(true) }}
-      onMouseLeave={() => { if (!isTouch) setIsFlipped(false) }}
-      onClick={(e) => { if (isTouch) { e.preventDefault(); setIsFlipped(v => !v) } }}
+      onMouseEnter={() => {
+        if (!isTouch) setIsFlipped(true)
+      }}
+      onMouseLeave={() => {
+        if (!isTouch) setIsFlipped(false)
+      }}
+      onClick={(e) => {
+        if (isTouch) {
+          e.preventDefault()
+          setIsFlipped((v) => !v)
+        }
+      }}
     >
       {/* Removed inline flip button for grid cards; hover flips on desktop, tap toggles on touch */}
 
@@ -161,13 +208,41 @@ function PfpFlipThumb({
           {/* Back (circle mask) */}
           <div style={backStyle} className={styles.backfaceHidden}>
             {profileHref ? (
-              <a href={profileHref} aria-label={username ? `Open ${username}.go4.me` : 'Open profile'} style={{ position: 'absolute', inset: 0 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', width: '80%', height: '80%', transform: 'translate(-50%, -50%)', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.25)' }}>
+              <a
+                href={profileHref}
+                aria-label={username ? `Open ${username}.go4.me` : 'Open profile'}
+                style={{ position: 'absolute', inset: 0 }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '80%',
+                    height: '80%',
+                    transform: 'translate(-50%, -50%)',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    boxShadow: '0 8px 20px rgba(0,0,0,0.25)',
+                  }}
+                >
                   <Image src={backUrl} alt={commonAlt} fill sizes="180px" style={{ objectFit: 'cover' }} />
                 </div>
               </a>
             ) : (
-              <div style={{ position: 'absolute', top: '50%', left: '50%', width: '80%', height: '80%', transform: 'translate(-50%, -50%)', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.25)' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '80%',
+                  height: '80%',
+                  transform: 'translate(-50%, -50%)',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.25)',
+                }}
+              >
                 <Image src={backUrl} alt={commonAlt} fill sizes="180px" style={{ objectFit: 'cover' }} />
               </div>
             )}
@@ -209,13 +284,9 @@ export async function getServerSideProps(ctx) {
   try {
     const supabase = getSupabaseClient()
     if (supabase) {
-      const { data, error } = await supabase
-        .from('get_user_page_info')
-        .select('*')
-        .ilike('username', username)
-        .limit(1)
+      const { data, error } = await supabase.from('get_user_page_info').select('*').ilike('username', username).limit(1)
       if (error) throw error
-    if (data && data.length > 0) {
+      if (data && data.length > 0) {
         const row = data[0]
         user = {
           username: row.username,
@@ -226,14 +297,13 @@ export async function getServerSideProps(ctx) {
           xchAddress: row.xch_address || '',
           didAddress: row.did_address || null,
           lastOfferId: row.last_offerid || '',
-      lastOfferStatus: row.last_offer_status ?? null,
-      totalBadgeScore: row.total_badge_score || 0,
-      rankCopiesSold: row.rank_copies_sold || null,
-      // Queue minutes for ETA under the profile Coming Soon badge
-      rankQueuePosition: row.rank_queue_position ?? null,
+          lastOfferStatus: row.last_offer_status ?? null,
+          totalBadgeScore: row.total_badge_score || 0,
+          rankCopiesSold: row.rank_copies_sold || null,
+          // Queue minutes for ETA under the profile Coming Soon badge
+          rankQueuePosition: row.rank_queue_position ?? null,
         }
       }
-
 
       // Attempt to load owned PFP NFTs (best-effort; swallow errors so profile still renders)
       try {
@@ -255,18 +325,25 @@ export async function getServerSideProps(ctx) {
             // Primary image from Supabase view
             const dataUri = r.pfp_data_uri || ''
             // Front prefers data URI; fallback to computed go4me image; last resort: any other provided url
-            const frontUrl = dataUri || ((cid && pfpUsername) ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-go4me.png` : (r.image_url || r.generated_pfp_url || ''))
+            const frontUrl =
+              dataUri ||
+              (cid && pfpUsername
+                ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-go4me.png`
+                : r.image_url || r.generated_pfp_url || '')
             // Back prefers computed original X image; fallback to data URI
-            const backUrl = (cid && pfpUsername) ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-x.png` : (dataUri || r.image_url || r.generated_pfp_url || '')
+            const backUrl =
+              cid && pfpUsername
+                ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-x.png`
+                : dataUri || r.image_url || r.generated_pfp_url || ''
             return {
               id: r.nft_id || r.id || `owned-${idx}`,
               frontUrl,
               backUrl,
               pfpName: r.pfp_name || r.name || `#${r.nft_id || idx + 1}`,
-        pfpUsername,
-        lastOfferId: r.last_offerid || r.lastOfferId || null,
-        lastOfferStatus: (r.last_offer_status ?? r.lastOfferStatus ?? null),
-        rankQueuePosition: r.rank_queue_position ?? null
+              pfpUsername,
+              lastOfferId: r.last_offerid || r.lastOfferId || null,
+              lastOfferStatus: r.last_offer_status ?? r.lastOfferStatus ?? null,
+              rankQueuePosition: r.rank_queue_position ?? null,
             }
           })
           ownedHasMore = ownedData.length === PAGE_SIZE
@@ -294,17 +371,24 @@ export async function getServerSideProps(ctx) {
             const pfpUsername = r.pfp_username || r.username || null
             const cid = r.pfp_ipfs_cid || r.pfpCid || r.cid || null
             const dataUri = r.pfp_data_uri || ''
-            const frontUrl = dataUri || ((cid && pfpUsername) ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-go4me.png` : (r.image_url || r.generated_pfp_url || ''))
-            const backUrl = (cid && pfpUsername) ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-x.png` : (dataUri || r.image_url || r.generated_pfp_url || '')
+            const frontUrl =
+              dataUri ||
+              (cid && pfpUsername
+                ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-go4me.png`
+                : r.image_url || r.generated_pfp_url || '')
+            const backUrl =
+              cid && pfpUsername
+                ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-x.png`
+                : dataUri || r.image_url || r.generated_pfp_url || ''
             return {
               id: r.nft_id || r.id || `other-${idx}`,
               frontUrl,
               backUrl,
               pfpName: r.pfp_name || r.name || `#${r.nft_id || idx + 1}`,
-        pfpUsername,
-        lastOfferId: r.last_offerid || r.lastOfferId || null,
-        lastOfferStatus: (r.last_offer_status ?? r.lastOfferStatus ?? null),
-        rankQueuePosition: r.rank_queue_position ?? null
+              pfpUsername,
+              lastOfferId: r.last_offerid || r.lastOfferId || null,
+              lastOfferStatus: r.last_offer_status ?? r.lastOfferStatus ?? null,
+              rankQueuePosition: r.rank_queue_position ?? null,
             }
           })
           othersHasMore = othersData.length === PAGE_SIZE
@@ -333,20 +417,61 @@ export async function getServerSideProps(ctx) {
   }
   if (portPart) rootHostForLinks += ':' + portPart
 
-  const ownedCount = (ownedPfps && ownedPfps._totalCount) ? ownedPfps._totalCount : (Array.isArray(ownedPfps) ? ownedPfps.length : 0)
-  const othersCount = (otherOwners && otherOwners._totalCount) ? otherOwners._totalCount : (Array.isArray(otherOwners) ? otherOwners.length : 0)
-  return { props: { user, ownedPfps, otherOwners, ownedHasMore, othersHasMore, pageSize: PAGE_SIZE, rootHostForLinks, ownedCount, othersCount, initialQuery: searchQ } }
+  const ownedCount =
+    ownedPfps && ownedPfps._totalCount ? ownedPfps._totalCount : Array.isArray(ownedPfps) ? ownedPfps.length : 0
+  const othersCount =
+    otherOwners && otherOwners._totalCount
+      ? otherOwners._totalCount
+      : Array.isArray(otherOwners)
+        ? otherOwners.length
+        : 0
+  return {
+    props: {
+      user,
+      ownedPfps,
+      otherOwners,
+      ownedHasMore,
+      othersHasMore,
+      pageSize: PAGE_SIZE,
+      rootHostForLinks,
+      ownedCount,
+      othersCount,
+      initialQuery: searchQ,
+    },
+  }
 }
 
-export default function DomainPage({ user, ownedPfps = [], otherOwners = [], ownedHasMore = false, othersHasMore = false, pageSize = 60, rootHostForLinks, ownedCount = 0, othersCount = 0, initialQuery = '' }) {
-  const { username, fullName, description, avatarUrl, xPfpUrl, xchAddress, didAddress, lastOfferId, totalBadgeScore = 0 } = user
+export default function DomainPage({
+  user,
+  ownedPfps = [],
+  otherOwners = [],
+  ownedHasMore = false,
+  othersHasMore = false,
+  pageSize = 60,
+  rootHostForLinks,
+  ownedCount = 0,
+  othersCount = 0,
+  initialQuery = '',
+}) {
+  const {
+    username,
+    fullName,
+    description,
+    avatarUrl,
+    xPfpUrl,
+    xchAddress,
+    didAddress,
+    lastOfferId,
+    totalBadgeScore = 0,
+  } = user
   const formattedBadgeScore = useMemo(() => {
     const n = Number(totalBadgeScore)
     return Number.isFinite(n) ? new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n) : '0'
   }, [totalBadgeScore])
   // Special-case badge for Marmot Recovery Fund address
   const MARMOT_BADGE_XCH = 'xch120ywvwahucfptkeuzzdpdz5v0nnarq5vgw94g247jd5vswkn7rls35y2gc'
-  const MARMOT_BADGE_IMG = 'https://can.seedsn.app/ipfs/QmTbsAspUtyxSK7W3vmq1bGfRJSisumYApZjnvsg59BhgW/marmot-recovery-logo.png'
+  const MARMOT_BADGE_IMG =
+    'https://can.seedsn.app/ipfs/QmTbsAspUtyxSK7W3vmq1bGfRJSisumYApZjnvsg59BhgW/marmot-recovery-logo.png'
   const showMarmotBadge = xchAddress === MARMOT_BADGE_XCH
   const [copiedXch, setCopiedXch] = useState(false)
   const [copiedDid, setCopiedDid] = useState(false)
@@ -367,28 +492,34 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
   const [rawSearch, setRawSearch] = useState(initialQuery || '')
   const [query, setQuery] = useState(initialQuery || '')
   const [isExporting, setIsExporting] = useState(false)
-  
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !('IntersectionObserver' in window)) setIntersectionSupported(false)
   }, [])
 
-  const mapRow = useCallback((r, idx, prefix='dyn') => {
+  const mapRow = useCallback((r, idx, prefix = 'dyn') => {
     const dataUri = r.pfp_data_uri || ''
     const pfpUsername = r.pfp_username || r.username || null
     const cid = r.pfp_ipfs_cid || r.pfpCid || r.cid || null
-    const frontUrl = dataUri || ((cid && pfpUsername) ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-go4me.png` : (r.image_url || r.generated_pfp_url || ''))
-    const backUrl = (cid && pfpUsername) ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-x.png` : (dataUri || r.image_url || r.generated_pfp_url || '')
+    const frontUrl =
+      dataUri ||
+      (cid && pfpUsername
+        ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-go4me.png`
+        : r.image_url || r.generated_pfp_url || '')
+    const backUrl =
+      cid && pfpUsername
+        ? `https://can.seedsn.app/ipfs/${cid}/${pfpUsername}-x.png`
+        : dataUri || r.image_url || r.generated_pfp_url || ''
     return {
       id: r.nft_id || r.id || `${prefix}-${idx}`,
       frontUrl,
       backUrl,
       pfpName: r.pfp_name || r.name || `#${r.nft_id || idx + 1}`,
-  pfpUsername,
-  lastOfferId: r.last_offerid || r.lastOfferId || null,
-  lastOfferStatus: (r.last_offer_status ?? r.lastOfferStatus ?? null),
-  // If the view supplies queue minutes for this PFP, keep it so we can show ETA.
-  rankQueuePosition: r.rank_queue_position ?? null
+      pfpUsername,
+      lastOfferId: r.last_offerid || r.lastOfferId || null,
+      lastOfferStatus: r.last_offer_status ?? r.lastOfferStatus ?? null,
+      // If the view supplies queue minutes for this PFP, keep it so we can show ETA.
+      rankQueuePosition: r.rank_queue_position ?? null,
     }
   }, [])
 
@@ -405,11 +536,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
       const from = currentPage * pageSize
       const to = from + pageSize - 1
       const viewName = isMy ? 'get_user_page_owned_pfps' : 'get_user_page_other_owners'
-      let qb = supabase
-        .from(viewName)
-        .select('*')
-        .ilike('username', username)
-        .range(from, to)
+      let qb = supabase.from(viewName).select('*').ilike('username', username).range(from, to)
       if (query) {
         qb = qb.or(`pfp_username.ilike.%${query}%,pfp_name.ilike.%${query}%`)
       }
@@ -418,20 +545,22 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
       if (Array.isArray(data) && data.length > 0) {
         const mapped = data.map((r, i) => mapRow(r, currentPage * pageSize + i, isMy ? 'owned' : 'other'))
         if (isMy) {
-          setOwnedList(prev => [...prev, ...mapped])
-          setOwnedPage(p => p + 1)
+          setOwnedList((prev) => [...prev, ...mapped])
+          setOwnedPage((p) => p + 1)
           setOwnedMore(data.length === pageSize)
         } else {
-          setOthersList(prev => [...prev, ...mapped])
-          setOthersPage(p => p + 1)
+          setOthersList((prev) => [...prev, ...mapped])
+          setOthersPage((p) => p + 1)
           setOthersMore(data.length === pageSize)
         }
       } else {
-        if (isMy) setOwnedMore(false); else setOthersMore(false)
+        if (isMy) setOwnedMore(false)
+        else setOthersMore(false)
       }
     } catch (e) {
       console.error('Failed to load more collection rows', e)
-      if (collectionTab === 'my') setOwnedMore(false); else setOthersMore(false)
+      if (collectionTab === 'my') setOwnedMore(false)
+      else setOthersMore(false)
     } finally {
       setIsLoadingMore(false)
     }
@@ -449,7 +578,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
           if (newQ) url.searchParams.set('q', newQ)
           else url.searchParams.delete('q')
           window.history.replaceState({}, '', url.toString())
-        } catch (_) {
+        } catch {
           // no-op
         }
       }
@@ -509,13 +638,22 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
         }
       } catch (e) {
         console.error('Failed to refresh first page', e)
-        if (collectionTab === 'my') { setOwnedList([]); setOwnedMore(false); setOwnedPage(1) }
-        else { setOthersList([]); setOthersMore(false); setOthersPage(1) }
+        if (collectionTab === 'my') {
+          setOwnedList([])
+          setOwnedMore(false)
+          setOwnedPage(1)
+        } else {
+          setOthersList([])
+          setOthersMore(false)
+          setOthersPage(1)
+        }
       }
     }
     fetchCounts()
     fetchFirstPage()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [query, collectionTab, pageSize, username, mapRow])
 
   // Re-observe sentinel when tab changes
@@ -523,9 +661,14 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
     if (!intersectionSupported) return
     const el = sentinelRef.current
     if (!el) return
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => { if (entry.isIntersecting) loadMore() })
-    }, { rootMargin: '300px' })
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) loadMore()
+        })
+      },
+      { rootMargin: '300px' },
+    )
     observer.observe(el)
     return () => observer.disconnect()
   }, [loadMore, intersectionSupported, collectionTab])
@@ -543,7 +686,9 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
     }
   }
   const metaTitle = fullName ? `${fullName} (@${username}) on go4.me` : `@${username} on go4.me`
-  const metaDesc = description ? description.slice(0, 200) : 'Claim your free, custom go4.me PFP and earn royalties whenever others purchase it.'
+  const metaDesc = description
+    ? description.slice(0, 200)
+    : 'Claim your free, custom go4.me PFP and earn royalties whenever others purchase it.'
 
   // removed birthday confetti logic
 
@@ -611,12 +756,18 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
       }
       if (start > lastIndex) nodes.push(text.slice(lastIndex, start))
       const href = url.startsWith('http') ? url : `https://${url}`
-  // For display, drop protocol (keep www. if present) and trailing slash
-  const displayText = url.replace(/^https?:\/\//i, '').replace(/\/$/, '')
+      // For display, drop protocol (keep www. if present) and trailing slash
+      const displayText = url.replace(/^https?:\/\//i, '').replace(/\/$/, '')
       nodes.push(
-        <a key={`u-${start}`} href={href} target="_blank" rel="noreferrer noopener" style={{ color: 'var(--color-link, #3aa0ff)' }}>
+        <a
+          key={`u-${start}`}
+          href={href}
+          target="_blank"
+          rel="noreferrer noopener"
+          style={{ color: 'var(--color-link, #3aa0ff)' }}
+        >
           {displayText}
-        </a>
+        </a>,
       )
       if (trailing) nodes.push(trailing)
       lastIndex = start + match[0].length
@@ -630,9 +781,9 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
     if (isExporting) return
     setIsExporting(true)
     try {
-  const supabase = getSupabaseClient()
+      const supabase = getSupabaseClient()
 
-    const PAGE = 1000
+      const PAGE = 1000
       let from = 0
       const rows = []
       // Fetch in chunks to cover all filtered results
@@ -659,7 +810,7 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
         // Always wrap in quotes; escape existing quotes
         return '"' + s.replace(/"/g, '""') + '"'
       }
-      const sourceRows = rows.length > 0 ? rows : (othersList || [])
+      const sourceRows = rows.length > 0 ? rows : othersList || []
       const lines = ['username,name,xch_address,did_address']
       for (const r of sourceRows) {
         // Support both Supabase view rows and client-side mapped items
@@ -703,25 +854,23 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
         <meta name="twitter:image" content={ogImage} />
         <meta name="twitter:site" content="@go4mebot" />
       </Head>
-  {/* Sticky top bar with centered search */}
-  <div className={styles.stickyTopbar}>
+      {/* Sticky top bar with centered search */}
+      <div className={styles.stickyTopbar}>
         {rootHostForLinks ? (
           <a href={`//${rootHostForLinks}/`} aria-label="Back to leaderboard home" className={styles.topNavLink}>
-            <Image src="/collection-icon.png" alt="go4.me" width={40} height={40} />
-            ← Back
+            <Image src="/collection-icon.png" alt="go4.me" width={40} height={40} />← Back
           </a>
         ) : (
           <Link href="/" aria-label="Back to leaderboard home" className={styles.topNavLink}>
-            <Image src="/collection-icon.png" alt="go4.me" width={40} height={40} />
-            ← Back
+            <Image src="/collection-icon.png" alt="go4.me" width={40} height={40} />← Back
           </Link>
         )}
         {/* Center: search */}
-  <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Input
-            icon='search'
-            size='large'
-            placeholder='Search for go4s…'
+            icon="search"
+            size="large"
+            placeholder="Search for go4s…"
             value={rawSearch}
             onChange={(_, { value }) => setRawSearch(value)}
             style={{ width: '100%', maxWidth: 'min(95vw, 2100px)' }}
@@ -732,10 +881,10 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
           {/* Hide claim button on mobile - will show in mobile banner */}
           <a
             href={`https://x.com/intent/tweet?text=Hi @go4mebot! My XCH address is: `}
-            target='_blank'
-            rel='noreferrer'
-            aria-label='Claim your go4me PFP on X'
-            title='Claim your go4me PFP on X'
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Claim your go4me PFP on X"
+            title="Claim your go4me PFP on X"
             className={styles.desktopClaimButton}
             style={{
               height: 34,
@@ -749,16 +898,29 @@ export default function DomainPage({ user, ownedPfps = [], otherOwners = [], own
               justifyContent: 'center',
               padding: '6px 8px',
               fontSize: '13px',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
             }}
           >
-Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, fontSize: 18, fontWeight: 800}}>𝕏</span>
+            Claim on{' '}
+            <span
+              aria-hidden="true"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 20,
+                fontSize: 18,
+                fontWeight: 800,
+              }}
+            >
+              𝕏
+            </span>
           </a>
 
           <button
-            type='button'
+            type="button"
             onClick={toggleTheme}
-            aria-label='Toggle dark mode'
+            aria-label="Toggle dark mode"
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             className={styles.desktopThemeButton}
             style={{
@@ -772,20 +934,36 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
               alignItems: 'center',
               justifyContent: 'center',
               padding: '6px 8px',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
             }}
           >
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
           </button>
         </div>
       </div>
-  <main className={styles.main} style={{ justifyContent: 'flex-start', paddingTop: 84, paddingBottom: 24 }}>
-  {/* Mobile claim banner intentionally disabled until header nav claim is removed */}
+      <main className={styles.main} style={{ justifyContent: 'flex-start', paddingTop: 84, paddingBottom: 24 }}>
+        {/* Mobile claim banner intentionally disabled until header nav claim is removed */}
 
-  <div className={styles.profileHeader} style={{ marginTop: '1rem', width: '100%', maxWidth: 1100, marginLeft: 'auto', marginRight: 'auto', alignSelf: 'stretch' }}>
-      <div className={styles.profileLeft}>
+        <div
+          className={styles.profileHeader}
+          style={{
+            marginTop: '1rem',
+            width: '100%',
+            maxWidth: 1100,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            alignSelf: 'stretch',
+          }}
+        >
+          <div className={styles.profileLeft}>
             <div className={styles.avatarWrap} style={{ width: 225, height: 225 }}>
-  <DomainPfpFlip avatarUrl={avatarUrl} xPfpUrl={xPfpUrl} username={username} linkHref={avatarUrl || undefined} rankCopiesSold={user?.rankCopiesSold} />
+              <DomainPfpFlip
+                avatarUrl={avatarUrl}
+                xPfpUrl={xPfpUrl}
+                username={username}
+                linkHref={avatarUrl || undefined}
+                rankCopiesSold={user?.rankCopiesSold}
+              />
             </div>
             {/* Centered Badge Score under avatar */}
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
@@ -793,8 +971,8 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                 <a
                   href={`//${rootHostForLinks}/how-it-works`}
                   className={`${styles.miniBadge} ${styles.largeBadge} ${styles.primaryBadge}`}
-                  title='Learn about $G4M airdrops and scoring'
-                  aria-label='Learn about $G4M airdrops and scoring'
+                  title="Learn about $G4M airdrops and scoring"
+                  aria-label="Learn about $G4M airdrops and scoring"
                 >
                   Badge Score {formattedBadgeScore}
                 </a>
@@ -802,8 +980,8 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                 <Link href="/how-it-works" passHref>
                   <a
                     className={`${styles.miniBadge} ${styles.largeBadge} ${styles.primaryBadge}`}
-                    title='Learn about $G4M airdrops and scoring'
-                    aria-label='Learn about $G4M airdrops and scoring'
+                    title="Learn about $G4M airdrops and scoring"
+                    aria-label="Learn about $G4M airdrops and scoring"
                   >
                     Badge Score {formattedBadgeScore}
                   </a>
@@ -824,263 +1002,303 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                 @{username}
               </a>
             </div>
-            {description && (
-              <p className={styles.profileDescription}>{linkify(description)}</p>
-            )}
+            {description && <p className={styles.profileDescription}>{linkify(description)}</p>}
 
             {/* Mobile Action Buttons - will be moved to bottom bar on mobile */}
             <div className={styles.mobileActionButtons}>
               {xchAddress && (
-                <div className={styles.actionColumn} style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div
+                  className={styles.actionColumn}
+                  style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 8 }}
+                >
                   {/* Addresses - Badge Score removed to avoid duplication */}
-                  <div className={styles.addressContainer} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                  {(() => {
-                    const full = xchAddress
-                    const display = full.length > 20 ? `${full.slice(0,8)}...${full.slice(-8)}` : full
-                    return (
-                      <>
-                        {showMarmotBadge && (
-                          <a
-                            href={rootHostForLinks ? `//${rootHostForLinks}/how-it-works#marmot-badge` : '/how-it-works#marmot-badge'}
-                            aria-label='Learn about the Marmot Recovery badge'
-                            title='Learn about the Marmot Recovery badge'
-                            style={{ textDecoration: 'none' }}
-                          >
-                            <div
-                              style={{
-                                width: 64,
-                                height: 64,
-                                borderRadius: '50%',
-                                overflow: 'hidden',
-                                flex: '0 0 auto',
-                                background: 'rgba(11, 181, 84, 0.12)',
-                                border: '1px solid rgba(11, 181, 84, 0.35)'
-                              }}
+                  <div
+                    className={styles.addressContainer}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}
+                  >
+                    {(() => {
+                      const full = xchAddress
+                      const display = full.length > 20 ? `${full.slice(0, 8)}...${full.slice(-8)}` : full
+                      return (
+                        <>
+                          {showMarmotBadge && (
+                            <a
+                              href={
+                                rootHostForLinks
+                                  ? `//${rootHostForLinks}/how-it-works#marmot-badge`
+                                  : '/how-it-works#marmot-badge'
+                              }
+                              aria-label="Learn about the Marmot Recovery badge"
+                              title="Learn about the Marmot Recovery badge"
+                              style={{ textDecoration: 'none' }}
                             >
-                              <Image
-                                src={MARMOT_BADGE_IMG}
-                                alt='Marmot Recovery badge'
-                                width={64}
-                                height={64}
-                                style={{ objectFit: 'cover' }}
-                              />
-                            </div>
-                          </a>
-                        )}
-                        <div
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            background: 'rgba(11, 181, 84, 0.12)',
-                            border: '1px solid rgba(11, 181, 84, 0.35)',
-                            borderRadius: 8,
-                            padding: '4px 6px',
-                            maxWidth: 560,
-                            cursor: 'pointer'
-                          }}
-                          title={full}
-                          role='button'
-                          tabIndex={0}
-                          aria-label='XCH address – click to copy'
-                          onClick={handleCopy}
-                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCopy() } }}
-                        >
-                          <code
-                            aria-label='XCH address'
+                              <div
+                                style={{
+                                  width: 64,
+                                  height: 64,
+                                  borderRadius: '50%',
+                                  overflow: 'hidden',
+                                  flex: '0 0 auto',
+                                  background: 'rgba(11, 181, 84, 0.12)',
+                                  border: '1px solid rgba(11, 181, 84, 0.35)',
+                                }}
+                              >
+                                <Image
+                                  src={MARMOT_BADGE_IMG}
+                                  alt="Marmot Recovery badge"
+                                  width={64}
+                                  height={64}
+                                  style={{ objectFit: 'cover' }}
+                                />
+                              </div>
+                            </a>
+                          )}
+                          <div
                             style={{
-                              background: 'transparent',
-                              padding: 0,
-                              borderRadius: 0,
-                              fontSize: 14,
-                              lineHeight: '18px',
-                              color: 'var(--color-text, #ddd)',
-                              maxWidth: 520,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              flex: '0 1 auto'
-                            }}
-                          >
-                            {display}
-                          </code>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleCopy() }}
-                            aria-label='Copy XCH address'
-                            title='Copy'
-                            style={{
-                              cursor: 'pointer',
-                              background: copiedXch ? 'var(--color-link, #0b5)' : 'transparent',
-                              color: copiedXch ? '#fff' : 'var(--color-text, #eee)',
-                              border: '1px solid rgba(11, 181, 84, 0.35)',
-                              padding: 6,
-                              width: 30,
-                              height: 30,
-                              fontSize: 12,
-                              borderRadius: 6,
                               display: 'inline-flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'background .15s, color .15s, border-color .15s',
-                              flex: '0 0 auto'
+                              gap: 8,
+                              background: 'rgba(11, 181, 84, 0.12)',
+                              border: '1px solid rgba(11, 181, 84, 0.35)',
+                              borderRadius: 8,
+                              padding: '4px 6px',
+                              maxWidth: 560,
+                              cursor: 'pointer',
+                            }}
+                            title={full}
+                            role="button"
+                            tabIndex={0}
+                            aria-label="XCH address – click to copy"
+                            onClick={handleCopy}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                handleCopy()
+                              }
                             }}
                           >
-                            <Icon name={copiedXch ? 'check' : 'copy'} size='small' />
-                          </button>
-                        </div>
-                      </>
-                    )
-                  })()}
+                            <code
+                              aria-label="XCH address"
+                              style={{
+                                background: 'transparent',
+                                padding: 0,
+                                borderRadius: 0,
+                                fontSize: 14,
+                                lineHeight: '18px',
+                                color: 'var(--color-text, #ddd)',
+                                maxWidth: 520,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                flex: '0 1 auto',
+                              }}
+                            >
+                              {display}
+                            </code>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleCopy()
+                              }}
+                              aria-label="Copy XCH address"
+                              title="Copy"
+                              style={{
+                                cursor: 'pointer',
+                                background: copiedXch ? 'var(--color-link, #0b5)' : 'transparent',
+                                color: copiedXch ? '#fff' : 'var(--color-text, #eee)',
+                                border: '1px solid rgba(11, 181, 84, 0.35)',
+                                padding: 6,
+                                width: 30,
+                                height: 30,
+                                fontSize: 12,
+                                borderRadius: 6,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background .15s, color .15s, border-color .15s',
+                                flex: '0 0 auto',
+                              }}
+                            >
+                              <Icon name={copiedXch ? 'check' : 'copy'} size="small" />
+                            </button>
+                          </div>
+                        </>
+                      )
+                    })()}
 
-                  {didAddress && (() => {
-                    const full = didAddress
-                    const prefix = 'did:chia:'
-                    const base = full.startsWith(prefix) ? full.slice(prefix.length) : full
-                    const display = base.length > 8 ? `${prefix}${base.slice(0,4)}...${base.slice(-4)}` : `${prefix}${base}`
-                    return (
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          background: 'rgba(59, 130, 246, 0.12)',
-                          border: '1px solid rgba(59, 130, 246, 0.35)',
-                          borderRadius: 8,
-                          padding: '4px 6px',
-                          maxWidth: 560,
-                          cursor: 'pointer'
-                        }}
-                        title={full}
-                        role='button'
-                        tabIndex={0}
-                        aria-label='DID address – click to copy'
-                        onClick={handleCopyDid}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCopyDid() } }}
-                      >
-                        <code
-                          aria-label='DID address'
-                          style={{
-                            background: 'transparent',
-                            padding: 0,
-                            borderRadius: 0,
-                            fontSize: 14,
-                            lineHeight: '18px',
-                            color: 'var(--color-text, #ddd)',
-                            maxWidth: 520,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            flex: '0 1 auto'
-                          }}
-                        >
-                          {display}
-                        </code>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleCopyDid() }}
-                          aria-label='Copy DID address'
-                          title='Copy'
-                          style={{
-                            cursor: 'pointer',
-                            background: copiedDid ? 'var(--color-link, #0b5)' : 'transparent',
-                            color: copiedDid ? '#fff' : 'var(--color-text, #eee)',
-                            border: '1px solid rgba(59, 130, 246, 0.35)',
-                            padding: 6,
-                            width: 30,
-                            height: 30,
-                            fontSize: 12,
-                            borderRadius: 6,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'background .15s, color .15s, border-color .15s',
-                            flex: '0 0 auto'
-                          }}
-                        >
-                          <Icon name={copiedDid ? 'check' : 'copy'} size='small' />
-                        </button>
+                    {didAddress &&
+                      (() => {
+                        const full = didAddress
+                        const prefix = 'did:chia:'
+                        const base = full.startsWith(prefix) ? full.slice(prefix.length) : full
+                        const display =
+                          base.length > 8 ? `${prefix}${base.slice(0, 4)}...${base.slice(-4)}` : `${prefix}${base}`
+                        return (
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              background: 'rgba(59, 130, 246, 0.12)',
+                              border: '1px solid rgba(59, 130, 246, 0.35)',
+                              borderRadius: 8,
+                              padding: '4px 6px',
+                              maxWidth: 560,
+                              cursor: 'pointer',
+                            }}
+                            title={full}
+                            role="button"
+                            tabIndex={0}
+                            aria-label="DID address – click to copy"
+                            onClick={handleCopyDid}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                handleCopyDid()
+                              }
+                            }}
+                          >
+                            <code
+                              aria-label="DID address"
+                              style={{
+                                background: 'transparent',
+                                padding: 0,
+                                borderRadius: 0,
+                                fontSize: 14,
+                                lineHeight: '18px',
+                                color: 'var(--color-text, #ddd)',
+                                maxWidth: 520,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                flex: '0 1 auto',
+                              }}
+                            >
+                              {display}
+                            </code>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleCopyDid()
+                              }}
+                              aria-label="Copy DID address"
+                              title="Copy"
+                              style={{
+                                cursor: 'pointer',
+                                background: copiedDid ? 'var(--color-link, #0b5)' : 'transparent',
+                                color: copiedDid ? '#fff' : 'var(--color-text, #eee)',
+                                border: '1px solid rgba(59, 130, 246, 0.35)',
+                                padding: 6,
+                                width: 30,
+                                height: 30,
+                                fontSize: 12,
+                                borderRadius: 6,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background .15s, color .15s, border-color .15s',
+                                flex: '0 0 auto',
+                              }}
+                            >
+                              <Icon name={copiedDid ? 'check' : 'copy'} size="small" />
+                            </button>
+                          </div>
+                        )
+                      })()}
+                  </div>
+                  {lastOfferId && user?.lastOfferStatus === 0 && (
+                    <div className={styles.desktopOfferSection}>
+                      <div className={styles.offerLabel}>
+                        <Icon name="handshake" size="small" />
+                        <span>Latest Offer</span>
                       </div>
-                    )
-                  })()}
+                      <div className={styles.offerButtons}>
+                        <TakeOfferButton
+                          offerId={lastOfferId}
+                          className={styles.offerButton}
+                          ariaLabel="Take offer via WalletConnect or view on Dexie"
+                          title="Dexie"
+                          labelDefault="Dexie"
+                          labelWhenSage="Take Offer"
+                        >
+                          <Image
+                            src="https://raw.githubusercontent.com/dexie-space/dexie-kit/main/svg/duck.svg"
+                            alt="Dexie"
+                            width={18}
+                            height={18}
+                          />
+                        </TakeOfferButton>
+                        <TakeMintgardenOfferButton
+                          offerId={lastOfferId}
+                          className={`${styles.offerButton} ${styles.offerButtonGreen}`}
+                          ariaLabel="Take offer via WalletConnect or view on Mintgarden"
+                          title="Mintgarden"
+                          labelDefault="Mintgarden"
+                          labelWhenSage="Take Offer"
+                        >
+                          <Image
+                            src="https://mintgarden.io/mint-logo-round.svg"
+                            alt="MintGarden"
+                            width={18}
+                            height={18}
+                          />
+                        </TakeMintgardenOfferButton>
+                      </div>
+                    </div>
+                  )}
+                  {(!lastOfferId || user?.lastOfferStatus !== 0) && (
+                    <div className={styles.badgeRow} style={{ marginTop: 2 }}>
+                      <span className={`${styles.miniBadge} ${styles.warningBadge}`}>
+                        {/* If we ever enrich the user profile with queue minutes, render an ETA. */}
+                        {Number.isFinite(user?.rankQueuePosition) && (user.rankQueuePosition ?? 0) > 0
+                          ? `Next mint in ~${(function (mins) {
+                              const m = Math.max(0, Math.round(mins || 0))
+                              if (m >= 60) {
+                                const h = Math.floor(m / 60),
+                                  r = m % 60
+                                return r ? `${h}h ${r}m` : `${h}h`
+                              }
+                              return `${m} minute${m === 1 ? '' : 's'}`
+                            })(user.rankQueuePosition)}`
+                          : 'Next Copy Coming Soon!'}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {lastOfferId && user?.lastOfferStatus === 0 && (
-                  <div className={styles.desktopOfferSection}>
-                    <div className={styles.offerLabel}>
-                      <Icon name='handshake' size='small' />
-                      <span>Latest Offer</span>
-                    </div>
-                    <div className={styles.offerButtons}>
-                    <TakeOfferButton
-                      offerId={lastOfferId}
-                      className={styles.offerButton}
-                      ariaLabel='Take offer via WalletConnect or view on Dexie'
-                      title='Dexie'
-                      labelDefault='Dexie'
-                      labelWhenSage='Take Offer'
-                    >
-                      <Image
-                        src="https://raw.githubusercontent.com/dexie-space/dexie-kit/main/svg/duck.svg"
-                        alt="Dexie"
-                        width={18}
-                        height={18}
-                      />
-                    </TakeOfferButton>
-                    <TakeMintgardenOfferButton
-                      offerId={lastOfferId}
-                      className={`${styles.offerButton} ${styles.offerButtonGreen}`}
-                      ariaLabel='Take offer via WalletConnect or view on Mintgarden'
-                      title='Mintgarden'
-                      labelDefault='Mintgarden'
-                      labelWhenSage='Take Offer'
-                    >
-                      <Image
-                        src="https://mintgarden.io/mint-logo-round.svg"
-                        alt="MintGarden"
-                        width={18}
-                        height={18}
-                      />
-                    </TakeMintgardenOfferButton>
-                    </div>
-                  </div>
-                )}
-                {(!lastOfferId || user?.lastOfferStatus !== 0) && (
-                  <div className={styles.badgeRow} style={{ marginTop: 2 }}>
-                    <span className={`${styles.miniBadge} ${styles.warningBadge}`}>
-                      {/* If we ever enrich the user profile with queue minutes, render an ETA. */}
-                      {Number.isFinite(user?.rankQueuePosition) && (user.rankQueuePosition ?? 0) > 0
-                        ? `Next mint in ~${(function(mins){ const m=Math.max(0,Math.round(mins||0)); if(m>=60){const h=Math.floor(m/60),r=m%60; return r?`${h}h ${r}m`:`${h}h`; } return `${m} minute${m===1?'':'s'}`; })(user.rankQueuePosition)}`
-                        : 'Next Copy Coming Soon!'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
             </div>
             {/* End of mobile action buttons container */}
-
           </div>
         </div>
 
-        
-
-    {/* Collection Tabs */}
-  <div style={{ marginTop: 30, width: '100%', maxWidth: 1100, marginLeft: 'auto', marginRight: 'auto', alignSelf: 'stretch' }}>
+        {/* Collection Tabs */}
+        <div
+          style={{
+            marginTop: 30,
+            width: '100%',
+            maxWidth: 1100,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            alignSelf: 'stretch',
+          }}
+        >
           <Menu secondary pointing style={{ marginBottom: 10 }}>
-            <Menu.Item
-              name='my'
-              active={collectionTab === 'my'}
-              onClick={() => setCollectionTab('my')}
-            >
+            <Menu.Item name="my" active={collectionTab === 'my'} onClick={() => setCollectionTab('my')}>
               My Collection ({ownedTotalCount || 0})
             </Menu.Item>
-            <Menu.Item
-              name='others'
-              active={collectionTab === 'others'}
-              onClick={() => setCollectionTab('others')}
-            >
+            <Menu.Item name="others" active={collectionTab === 'others'} onClick={() => setCollectionTab('others')}>
               Other Owners ({othersTotalCount || 0})
             </Menu.Item>
           </Menu>
-          <div style={{ margin: '4px 0 18px', fontSize: 13, lineHeight: 1.4, color: 'var(--color-text-subtle)', maxWidth: 1100 }}>
+          <div
+            style={{
+              margin: '4px 0 18px',
+              fontSize: 13,
+              lineHeight: 1.4,
+              color: 'var(--color-text-subtle)',
+              maxWidth: 1100,
+            }}
+          >
             {collectionTab === 'my' ? (
               <span>Send go4me PFPs to the address above and they will show up here.</span>
             ) : (
@@ -1088,19 +1306,19 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                 <span style={{ flex: '1 1 auto' }}>These collectors own your PFP. Why not return the favor?</span>
                 <div style={{ flex: '0 0 auto' }}>
                   <Button
-                    size='small'
+                    size="small"
                     basic
-                    color='grey'
+                    color="grey"
                     onClick={exportOthersCsv}
                     loading={isExporting}
                     disabled={isExporting || (othersTotalCount || 0) === 0}
                     style={{ height: 34 }}
-                    aria-label='Download XCH addresses CSV'
-                    title='Download CSV of XCH addresses'
+                    aria-label="Download XCH addresses CSV"
+                    title="Download CSV of XCH addresses"
                     icon
-                    labelPosition='left'
+                    labelPosition="left"
                   >
-                    <Icon name='download' />
+                    <Icon name="download" />
                     XCH Addresses
                   </Button>
                 </div>
@@ -1110,12 +1328,16 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
           {(() => {
             const list = collectionTab === 'my' ? ownedList : othersList
             if (!list || list.length === 0) {
-              return <div style={{ textAlign: 'center', opacity: 0.55, fontSize: 14 }}>{collectionTab === 'my' ? 'No owned PFPs to display yet.' : 'No other owner PFPs to display.'}</div>
+              return (
+                <div style={{ textAlign: 'center', opacity: 0.55, fontSize: 14 }}>
+                  {collectionTab === 'my' ? 'No owned PFPs to display yet.' : 'No other owner PFPs to display.'}
+                </div>
+              )
             }
             return (
               <div className={styles.lbGrid} style={{ alignItems: 'stretch' }}>
-                {list.map(item => {
-                  const subHref = item.pfpUsername ? `//${item.pfpUsername}.${(rootHostForLinks || 'go4.me')}/` : null
+                {list.map((item) => {
+                  const subHref = item.pfpUsername ? `//${item.pfpUsername}.${rootHostForLinks || 'go4.me'}/` : null
                   const frontUrl = item.frontUrl
                   const backUrl = item.backUrl
                   return (
@@ -1128,7 +1350,13 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                       />
                       <div className={styles.cardBody}>
                         {item.pfpName && (
-                          <div className={styles.fullName} style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }} title={item.pfpName}>{item.pfpName}</div>
+                          <div
+                            className={styles.fullName}
+                            style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}
+                            title={item.pfpName}
+                          >
+                            {item.pfpName}
+                          </div>
                         )}
                         {item.pfpUsername && (
                           <div className={styles.username} style={{ fontSize: 12 }} title={`@${item.pfpUsername}`}>
@@ -1147,11 +1375,11 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                               <>
                                 <a
                                   href={`https://dexie.space/offers/${item.lastOfferId}`}
-                                  target='_blank'
-                                  rel='noreferrer noopener'
+                                  target="_blank"
+                                  rel="noreferrer noopener"
                                   className={styles.miniBadge}
-                                  aria-label='View latest offer on Dexie'
-                                  title='Dexie'
+                                  aria-label="View latest offer on Dexie"
+                                  title="Dexie"
                                 >
                                   <Image
                                     src="https://raw.githubusercontent.com/dexie-space/dexie-kit/main/svg/duck.svg"
@@ -1163,11 +1391,11 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                                 </a>
                                 <a
                                   href={`https://mintgarden.io/offers/${item.lastOfferId}`}
-                                  target='_blank'
-                                  rel='noreferrer noopener'
+                                  target="_blank"
+                                  rel="noreferrer noopener"
                                   className={styles.miniBadge}
-                                  aria-label='View latest offer on Mintgarden'
-                                  title='Mintgarden'
+                                  aria-label="View latest offer on Mintgarden"
+                                  title="Mintgarden"
                                 >
                                   <Image
                                     src="https://mintgarden.io/mint-logo-round.svg"
@@ -1181,7 +1409,15 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                             ) : (
                               <span className={`${styles.miniBadge} ${styles.warningBadge}`}>
                                 {Number.isFinite(item?.rankQueuePosition) && (item.rankQueuePosition ?? 0) > 0
-                                  ? `Next mint in ~${(function(mins){ const m=Math.max(0,Math.round(mins||0)); if(m>=60){const h=Math.floor(m/60),r=m%60; return r?`${h}h ${r}m`:`${h}h`; } return `${m} minute${m===1?'':'s'}`; })(item.rankQueuePosition)}`
+                                  ? `Next mint in ~${(function (mins) {
+                                      const m = Math.max(0, Math.round(mins || 0))
+                                      if (m >= 60) {
+                                        const h = Math.floor(m / 60),
+                                          r = m % 60
+                                        return r ? `${h}h ${r}m` : `${h}h`
+                                      }
+                                      return `${m} minute${m === 1 ? '' : 's'}`
+                                    })(item.rankQueuePosition)}`
                                   : 'Next Copy Coming Soon!'}
                               </span>
                             )}
@@ -1209,7 +1445,7 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                   fontSize: '14px',
                   cursor: isLoadingMore ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s ease',
-                  opacity: isLoadingMore ? 0.6 : 1
+                  opacity: isLoadingMore ? 0.6 : 1,
                 }}
               >
                 {isLoadingMore ? 'Loading...' : 'Load more'}
@@ -1232,9 +1468,13 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                   <span className={styles.bottomBarLabelSmall}>XCH</span>
                   {showMarmotBadge && (
                     <a
-                      href={rootHostForLinks ? `//${rootHostForLinks}/how-it-works#marmot-badge` : '/how-it-works#marmot-badge'}
-                      aria-label='Learn about the Marmot Recovery badge'
-                      title='Learn about the Marmot Recovery badge'
+                      href={
+                        rootHostForLinks
+                          ? `//${rootHostForLinks}/how-it-works#marmot-badge`
+                          : '/how-it-works#marmot-badge'
+                      }
+                      aria-label="Learn about the Marmot Recovery badge"
+                      title="Learn about the Marmot Recovery badge"
                       style={{ textDecoration: 'none' }}
                     >
                       <div
@@ -1247,12 +1487,12 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                           marginRight: 6,
                           flex: '0 0 auto',
                           background: 'rgba(11, 181, 84, 0.12)',
-                          border: '1px solid rgba(11, 181, 84, 0.35)'
+                          border: '1px solid rgba(11, 181, 84, 0.35)',
                         }}
                       >
                         <Image
                           src={MARMOT_BADGE_IMG}
-                          alt='Marmot Recovery badge'
+                          alt="Marmot Recovery badge"
                           width={32}
                           height={32}
                           style={{ objectFit: 'cover' }}
@@ -1263,13 +1503,20 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                   <div
                     className={styles.bottomBarAddressShort}
                     onClick={handleCopy}
-                    role='button'
+                    role="button"
                     tabIndex={0}
-                    aria-label='XCH address – click to copy'
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCopy() } }}
+                    aria-label="XCH address – click to copy"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleCopy()
+                      }
+                    }}
                   >
-                    <code>{xchAddress.slice(0,3)}..{xchAddress.slice(-2)}</code>
-                    <Icon name={copiedXch ? 'check' : 'copy'} size='small' />
+                    <code>
+                      {xchAddress.slice(0, 3)}..{xchAddress.slice(-2)}
+                    </code>
+                    <Icon name={copiedXch ? 'check' : 'copy'} size="small" />
                   </div>
                 </div>
               )}
@@ -1281,13 +1528,22 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                   <div
                     className={styles.bottomBarAddressShort}
                     onClick={handleCopyDid}
-                    role='button'
+                    role="button"
                     tabIndex={0}
-                    aria-label='DID address – click to copy'
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCopyDid() } }}
+                    aria-label="DID address – click to copy"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleCopyDid()
+                      }
+                    }}
                   >
-                    <code>{didAddress.startsWith('did:chia:') ? `${didAddress.slice(9, 11)}..${didAddress.slice(-2)}` : `${didAddress.slice(0,3)}..${didAddress.slice(-2)}`}</code>
-                    <Icon name={copiedDid ? 'check' : 'copy'} size='small' />
+                    <code>
+                      {didAddress.startsWith('did:chia:')
+                        ? `${didAddress.slice(9, 11)}..${didAddress.slice(-2)}`
+                        : `${didAddress.slice(0, 3)}..${didAddress.slice(-2)}`}
+                    </code>
+                    <Icon name={copiedDid ? 'check' : 'copy'} size="small" />
                   </div>
                 </div>
               )}
@@ -1299,32 +1555,30 @@ Claim on <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: '
                   <div className={styles.bottomBarButtonsCompact}>
                     <a
                       href={`https://dexie.space/offers/${lastOfferId}`}
-                      target='_blank'
-                      rel='noreferrer'
+                      target="_blank"
+                      rel="noreferrer"
                       className={`${styles.bottomBarButtonSmall} ${styles.bottomBarButtonBlue}`}
-                      aria-label='View offer on Dexie'
+                      aria-label="View offer on Dexie"
                     >
                       Dexie
                     </a>
                     <a
                       href={`https://mintgarden.io/offers/${lastOfferId}`}
-                      target='_blank'
-                      rel='noreferrer'
+                      target="_blank"
+                      rel="noreferrer"
                       className={`${styles.bottomBarButtonSmall} ${styles.bottomBarButtonGreen}`}
-                      aria-label='View offer on MintGarden'
+                      aria-label="View offer on MintGarden"
                     >
                       MintGarden
                     </a>
                   </div>
                 </div>
               )}
-
-
             </div>
           </div>
         </div>
-  </main>
-  {/* Footer removed; link moved to top bar */}
+      </main>
+      {/* Footer removed; link moved to top bar */}
     </div>
   )
 }
