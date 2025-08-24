@@ -55,7 +55,9 @@ function GobyButton({ onConnected }: { onConnected?: () => void }) {
   if (!isAvailable) {
     return (
       <a
-        href="https://chrome.google.com/webstore/detail/goby-chia-wallet/" target="_blank" rel="noreferrer noopener"
+        href="https://chrome.google.com/webstore/detail/goby-chia-wallet/"
+        target="_blank"
+        rel="noreferrer noopener"
         className="copyBtn"
         style={{ ...btnStyle, color: textColour }}
       >
@@ -73,7 +75,11 @@ function GobyButton({ onConnected }: { onConnected?: () => void }) {
   }
 
   return (
-    <button className="copyBtn" style={{ ...btnStyle, color: textColour, backgroundColor: '#22c55e', cursor: 'default' }} disabled>
+    <button
+      className="copyBtn"
+      style={{ ...btnStyle, color: textColour, backgroundColor: '#22c55e', cursor: 'default' }}
+      disabled
+    >
       <Icon name="check" /> Connected with Goby
     </button>
   )
@@ -94,12 +100,14 @@ function SupportedWalletsList() {
     : ['Sage Wallet', 'Chia Wallet', 'Goby'] // Desktop: all three wallets
 
   return (
-    <div style={{
-      padding: '16px',
-      backgroundColor: 'var(--color-chip-bg)',
-      borderRadius: '8px',
-      border: '1px solid var(--color-border)'
-    }}>
+    <div
+      style={{
+        padding: '16px',
+        backgroundColor: 'var(--color-chip-bg)',
+        borderRadius: '8px',
+        border: '1px solid var(--color-border)',
+      }}
+    >
       <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: '600' }}>Supported Wallets:</p>
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
         {wallets.map((wallet) => (
@@ -109,7 +117,7 @@ function SupportedWalletsList() {
               fontSize: '12px',
               padding: '4px 8px',
               backgroundColor: 'var(--color-border)',
-              borderRadius: '4px'
+              borderRadius: '4px',
             }}
           >
             {wallet}
@@ -128,7 +136,13 @@ interface CustomConnectModalProps {
   error?: string | null
 }
 
-export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, error }: CustomConnectModalProps) {
+export function CustomConnectModal({
+  isOpen,
+  onClose,
+  qrCodeUri,
+  isConnecting: _isConnecting,
+  error,
+}: CustomConnectModalProps) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('')
   const [copied, setCopied] = useState(false)
 
@@ -140,52 +154,60 @@ export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, e
     }
 
     // Use QR code library to generate data URL
-    import('qrcode').then(QRCode => {
-      QRCode.toDataURL(qrCodeUri, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
-        }
-      }).then(dataUrl => {
-        setQrCodeDataUrl(dataUrl)
-      }).catch(() => {
+    import('qrcode')
+      .then((QRCode) => {
+        QRCode.toDataURL(qrCodeUri, {
+          width: 300,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF',
+          },
+        })
+          .then((dataUrl) => {
+            setQrCodeDataUrl(dataUrl)
+          })
+          .catch(() => {
+            setQrCodeDataUrl('')
+          })
+      })
+      .catch(() => {
+        // Fallback: show URI as text if QR library not available
         setQrCodeDataUrl('')
       })
-    }).catch(() => {
-      // Fallback: show URI as text if QR library not available
-      setQrCodeDataUrl('')
-    })
   }, [qrCodeUri])
 
   if (!isOpen) return null
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10000,
-      backdropFilter: 'blur(4px)'
-    }}>
-      <div style={{
-        backgroundColor: 'var(--color-card-bg)',
-        borderRadius: '16px',
-        padding: '32px',
-        maxWidth: '400px',
-        width: '90%',
-        maxHeight: '90vh',
-        overflow: 'auto',
-        border: '1px solid var(--color-border)',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
-      }}>
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+        backdropFilter: 'blur(4px)',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: 'var(--color-card-bg)',
+          borderRadius: '16px',
+          padding: '32px',
+          maxWidth: '400px',
+          width: '90%',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          border: '1px solid var(--color-border)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+        }}
+      >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -200,7 +222,7 @@ export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, e
               cursor: 'pointer',
               padding: '4px',
               borderRadius: '4px',
-              color: 'var(--color-text-subtle)'
+              color: 'var(--color-text-subtle)',
             }}
             aria-label="Close"
           >
@@ -210,13 +232,15 @@ export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, e
 
         {/* Content */}
         {error ? (
-          <div style={{
-            padding: '16px',
-            backgroundColor: 'rgba(255, 0, 0, 0.1)',
-            border: '1px solid rgba(255, 0, 0, 0.3)',
-            borderRadius: '8px',
-            marginBottom: '16px'
-          }}>
+          <div
+            style={{
+              padding: '16px',
+              backgroundColor: 'rgba(255, 0, 0, 0.1)',
+              border: '1px solid rgba(255, 0, 0, 0.3)',
+              borderRadius: '8px',
+              marginBottom: '16px',
+            }}
+          >
             <p style={{ margin: 0, color: '#ff4444' }}>{error}</p>
           </div>
         ) : null}
@@ -227,17 +251,19 @@ export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, e
               Scan this QR code with your Chia wallet to connect
             </p>
             <GobyButton onConnected={onClose} />
-            <div style={{
-              padding: '16px',
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              marginBottom: '20px',
-              minHeight: '332px',
-              minWidth: '332px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
+            <div
+              style={{
+                padding: '16px',
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                marginBottom: '20px',
+                minHeight: '332px',
+                minWidth: '332px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               {qrCodeDataUrl ? (
                 <Image
                   src={qrCodeDataUrl}
@@ -249,17 +275,27 @@ export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, e
                 />
               ) : (
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    border: '3px solid #ccc',
-                    borderTop: '3px solid #007bff',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                    margin: '0 auto 16px'
-                  }} />
+                  <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      border: '3px solid #ccc',
+                      borderTop: '3px solid #007bff',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                      margin: '0 auto 16px',
+                    }}
+                  />
                   <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Generating QR code...</p>
-                  <p style={{ margin: '8px 0 0', color: '#999', fontSize: '12px', wordBreak: 'break-all', maxWidth: '280px' }}>
+                  <p
+                    style={{
+                      margin: '8px 0 0',
+                      color: '#999',
+                      fontSize: '12px',
+                      wordBreak: 'break-all',
+                      maxWidth: '280px',
+                    }}
+                  >
                     {qrCodeUri.substring(0, 50)}...
                   </p>
                 </div>
@@ -270,7 +306,8 @@ export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, e
               <button
                 onClick={() => {
                   if (!qrCodeUri) return
-                  navigator.clipboard.writeText(qrCodeUri)
+                  navigator.clipboard
+                    .writeText(qrCodeUri)
                     .then(() => {
                       setCopied(true)
                       setTimeout(() => setCopied(false), 1200)
@@ -291,7 +328,7 @@ export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, e
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px'
+                  gap: '8px',
                 }}
                 className={`copyBtn${copied ? ' copied' : ''}`}
               >
@@ -309,26 +346,35 @@ export function CustomConnectModal({ isOpen, onClose, qrCodeUri, isConnecting, e
         )}
 
         {/* Footer */}
-        <div style={{
-          marginTop: '24px',
-          paddingTop: '16px',
-          borderTop: '1px solid var(--color-border)',
-          textAlign: 'center'
-        }}>
+        <div
+          style={{
+            marginTop: '24px',
+            paddingTop: '16px',
+            borderTop: '1px solid var(--color-border)',
+            textAlign: 'center',
+          }}
+        >
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-subtle)' }}>
             Powered by WalletConnect • Secure & Decentralized
           </p>
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
         .copyBtn {
           background: var(--color-link);
-          transition: transform 120ms ease, filter 120ms ease, background 160ms ease;
+          transition:
+            transform 120ms ease,
+            filter 120ms ease,
+            background 160ms ease;
         }
         .copyBtn:hover {
           filter: brightness(1.05);

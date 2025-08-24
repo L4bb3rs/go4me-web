@@ -2,7 +2,7 @@ import { getSupabaseClient } from '../lib/supabaseClient'
 
 function generateSiteMap(users) {
   const baseUrl = 'https://go4.me'
-  
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Main pages -->
@@ -81,7 +81,7 @@ function generateSiteMap(users) {
 
 export async function getServerSideProps({ res }) {
   const supabase = getSupabaseClient()
-  
+
   try {
     // Page through users to include all profile pages without exceeding limits
     const PAGE_SIZE = 1000 // Supabase default max is often 1000; keep requests efficient
@@ -110,25 +110,25 @@ export async function getServerSideProps({ res }) {
       if (data.length < PAGE_SIZE) break
       page += 1
     }
-    
+
     // Generate the XML sitemap
     const sitemap = generateSiteMap(users || [])
-    
+
     res.setHeader('Content-Type', 'text/xml')
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate') // Cache for 24 hours
     res.write(sitemap)
     res.end()
-    
+
     return { props: {} }
   } catch (error) {
     console.error('Error generating sitemap:', error)
-    
+
     // Fallback to basic sitemap
     const basicSitemap = generateSiteMap([])
     res.setHeader('Content-Type', 'text/xml')
     res.write(basicSitemap)
     res.end()
-    
+
     return { props: {} }
   }
 }

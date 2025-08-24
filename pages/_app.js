@@ -133,7 +133,9 @@ function MyApp({ Component, pageProps }) {
   const applyTheme = useCallback((next) => {
     setTheme(next)
     document.documentElement.setAttribute('data-theme', next)
-    try { localStorage.setItem('theme', next) } catch {}
+    try {
+      localStorage.setItem('theme', next)
+    } catch {}
   }, [])
 
   const toggleTheme = useCallback(() => {

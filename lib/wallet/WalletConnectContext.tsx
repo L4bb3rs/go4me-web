@@ -20,7 +20,7 @@ interface WalletConnectContextValue {
   error: string | null
 }
 
-const WalletConnectContext = createContext<WalletConnectContextValue>({} as any)
+const WalletConnectContext = createContext<WalletConnectContextValue>({} as unknown as WalletConnectContextValue)
 
 export function WalletConnectProvider({ children }: PropsWithChildren) {
   const [client, setClient] = useState<Client>()
@@ -35,10 +35,16 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
   const [qrCodeUri, setQrCodeUri] = useState<string>('')
   const [isConnecting, setIsConnecting] = useState(false)
 
-  const reset = useCallback(() => { setSession(undefined); setAccounts([]); setError(null) }, [])
+  const reset = useCallback(() => {
+    setSession(undefined)
+    setAccounts([])
+    setError(null)
+  }, [])
 
   const onSessionConnected = useCallback((sess: SessionTypes.Struct) => {
-    const allNamespaceAccounts = Object.values(sess.namespaces).map((ns) => ns.accounts).flat()
+    const allNamespaceAccounts = Object.values(sess.namespaces)
+      .map((ns) => ns.accounts)
+      .flat()
     setSession(sess)
     setAccounts(allNamespaceAccounts)
   }, [])
@@ -46,27 +52,40 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
   // Aggressive purge of ALL pairings to prevent "No matching key" errors when reconnecting
   const purgeAllPairings = useCallback((c: Client) => {
     try {
-      const all = (c as any)?.pairing?.getAll?.() || []
-      all.forEach((p: any) => {
-        try { (c as any).core?.pairing?.delete?.(p.topic) } catch {}
+      const all: Array<{ topic: string }> = ((
+        c as unknown as { pairing?: { getAll?: () => Array<{ topic: string }> } }
+      )?.pairing?.getAll?.() || []) as Array<{ topic: string }>
+      all.forEach((p) => {
+        try {
+          ;(c as unknown as { core?: { pairing?: { delete?: (topic: string) => void } } }).core?.pairing?.delete?.(
+            p.topic,
+          )
+        } catch {}
       })
     } catch {}
   }, [])
 
   // Aggressively clear stale core storage entries that can cause "No matching key"
-  const hardResetCore = useCallback(async (c: Client) => {
+  const _hardResetCore = useCallback(async (c: Client) => {
     try {
-      const storage = (c as any).core?.storage
+      const storage = (
+        c as unknown as {
+          core?: { storage?: { getKeys?: () => Promise<string[]>; removeItem?: (k: string) => Promise<void> } }
+        }
+      ).core?.storage
       if (!storage || !storage.getKeys) return
       const keys: string[] = await storage.getKeys()
-      const toRemove = keys.filter(k => (
-        k.includes('core:pairing') ||
-        k.includes('core:history') ||
-        k.includes('core:expirer') ||
-        k.includes('core:messages')
-      ))
+      const toRemove = keys.filter(
+        (k) =>
+          k.includes('core:pairing') ||
+          k.includes('core:history') ||
+          k.includes('core:expirer') ||
+          k.includes('core:messages'),
+      )
       for (const k of toRemove) {
-        try { await storage.removeItem(k) } catch {}
+        try {
+          await storage?.removeItem?.(k)
+        } catch {}
       }
     } catch {}
   }, [])
@@ -81,7 +100,10 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
       setError(null)
 
       // Force a fresh pairing every time to avoid undefined pairing keys
-      const { uri, approval } = await client.connect({ pairingTopic: undefined, requiredNamespaces: REQUIRED_NAMESPACES })
+      const { uri, approval } = await client.connect({
+        pairingTopic: undefined,
+        requiredNamespaces: REQUIRED_NAMESPACES,
+      })
       if (uri) {
         setQrCodeUri(uri)
         try {
@@ -89,19 +111,20 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
           onSessionConnected(sess)
           setPairings(client.pairing.getAll({ active: true }))
           setShowModal(false)
-        } catch (approveErr: any) {
-          setError(approveErr?.message || 'Connection request was rejected')
+        } catch (approveErr) {
+          const msg = (approveErr as Error)?.message || 'Connection request was rejected'
+          setError(msg)
           throw approveErr
         } finally {
           setIsConnecting(false)
         }
       }
-    } catch (e: any) {
+    } catch (e) {
       console.error(e)
       setIsConnecting(false)
-      if (!('message' in e)) setError('WalletConnect error')
+      if (!('message' in (e as object))) setError('WalletConnect error')
     }
-  }, [client, onSessionConnected, purgeAllPairings, hardResetCore, isConnecting])
+  }, [client, onSessionConnected, isConnecting])
 
   const disconnect = useCallback(async () => {
     try {
@@ -110,111 +133,138 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
       }
       // Purge all pairings after disconnect to avoid stale state
       if (client) {
-        try { purgeAllPairings(client) } catch {}
+        try {
+          purgeAllPairings(client)
+          // _hardResetCore is available for deeper cleanup if needed during debugging
+          // await _hardResetCore(client)
+        } catch {}
       }
-    } catch (e: any) {
-      console.warn('Disconnect error (ignored):', e?.message || e)
+    } catch (e) {
+      const msg = (e as Error)?.message || String(e)
+      console.warn('Disconnect error (ignored):', msg)
     } finally {
       reset()
     }
   }, [client, session, purgeAllPairings, reset])
 
-  const subscribeToEvents = useCallback(async (c: Client) => {
-    c.on('session_update', ({ topic, params }) => {
-      try {
-        const { namespaces } = params
-        const sess = c.session.get(topic)
-        const updated = { ...sess, namespaces }
-        onSessionConnected(updated)
-      } catch (e: any) {
-        // Gracefully ignore late events after disconnect
-        console.warn('Ignored session_update:', e?.message || e)
-      }
-    })
-    c.on('session_delete', () => {
-      try { reset() } catch {}
-    })
-    c.on('session_event', () => {
-      // Quiet noisy logs from underlying client; handle per-request errors in callers
-    })
+  const subscribeToEvents = useCallback(
+    async (c: Client) => {
+      c.on('session_update', ({ topic, params }) => {
+        try {
+          const { namespaces } = params
+          const sess = c.session.get(topic)
+          const updated = { ...sess, namespaces }
+          onSessionConnected(updated)
+        } catch (e) {
+          // Gracefully ignore late events after disconnect
+          console.warn('Ignored session_update:', (e as Error)?.message || String(e))
+        }
+      })
+      c.on('session_delete', () => {
+        try {
+          reset()
+        } catch {}
+      })
+      c.on('session_event', () => {
+        // Quiet noisy logs from underlying client; handle per-request errors in callers
+      })
 
-    // Add global error handlers to suppress WalletConnect internal errors
-    if (typeof window !== 'undefined') {
-      const originalConsoleError = console.error
-      console.error = (...args: any[]) => {
-        const message = args.join(' ')
-        // Suppress specific WalletConnect errors that are noise
-        if (message.includes('No matching key') ||
+      // Add global error handlers to suppress WalletConnect internal errors
+      if (typeof window !== 'undefined') {
+        const originalConsoleError = console.error
+        console.error = (...args: unknown[]) => {
+          const message = args.join(' ')
+          // Suppress specific WalletConnect errors that are noise
+          if (
+            message.includes('No matching key') ||
             message.includes('pairing: undefined') ||
             message.includes('getRecord') ||
             message.includes('cleanupDuplicatePairings') ||
             message.includes('onSessionSettleRequest') ||
-            message.includes('onRelayEventResponse')) {
-          return // silently ignore
+            message.includes('onRelayEventResponse')
+          ) {
+            return // silently ignore
+          }
+          originalConsoleError.apply(console, args)
         }
-        originalConsoleError.apply(console, args)
-      }
 
-      // Handle unhandled promise rejections from WalletConnect
-      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-        const message = event.reason?.message || String(event.reason)
-        if (message.includes('No matching key') ||
+        // Handle unhandled promise rejections from WalletConnect
+        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+          const message = event.reason?.message || String(event.reason)
+          if (
+            message.includes('No matching key') ||
             message.includes('pairing: undefined') ||
             message.includes('getRecord') ||
             message.includes('cleanupDuplicatePairings') ||
             message.includes('onSessionSettleRequest') ||
-            message.includes('onRelayEventResponse')) {
-          event.preventDefault() // prevent the error from showing
-          return
+            message.includes('onRelayEventResponse')
+          ) {
+            event.preventDefault() // prevent the error from showing
+            return
+          }
+        }
+        window.addEventListener('unhandledrejection', handleUnhandledRejection)
+
+        // Store cleanup function
+        ;(c as unknown as { _cleanup?: () => void })._cleanup = () => {
+          console.error = originalConsoleError
+          window.removeEventListener('unhandledrejection', handleUnhandledRejection)
         }
       }
-      window.addEventListener('unhandledrejection', handleUnhandledRejection)
+    },
+    [onSessionConnected, reset],
+  )
 
-      // Store cleanup function
-      ;(c as any)._cleanup = () => {
-        console.error = originalConsoleError
-        window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+  const checkPersistedState = useCallback(
+    async (c: Client) => {
+      setPairings(c.pairing.getAll({ active: true }))
+      if (session) return
+      if (c.session.length) {
+        const lastKeyIndex = c.session.keys.length - 1
+        const sess = c.session.get(c.session.keys[lastKeyIndex])
+        onSessionConnected(sess)
+        return sess
       }
-    }
-  }, [onSessionConnected, reset])
-
-  const checkPersistedState = useCallback(async (c: Client) => {
-    setPairings(c.pairing.getAll({ active: true }))
-    if (session) return
-    if (c.session.length) {
-      const lastKeyIndex = c.session.keys.length - 1
-      const sess = c.session.get(c.session.keys[lastKeyIndex])
-      onSessionConnected(sess)
-      return sess
-    }
-  }, [session, onSessionConnected])
+    },
+    [session, onSessionConnected],
+  )
 
   const createClient = useCallback(async () => {
     setIsInitializing(true)
     try {
       // Clean legacy storage/cookies once on boot
-      try { (crossDomainStorage as any).cleanupLegacy?.() } catch {}
+      try {
+        ;(crossDomainStorage as unknown as { cleanupLegacy?: () => void }).cleanupLegacy?.()
+      } catch {}
 
       const safeMeta = { ...METADATA, url: typeof window !== 'undefined' ? window.location.origin : 'http://localhost' }
       const c = await Client.init({
         relayUrl: RELAY_URL,
         projectId: PROJECT_ID,
         metadata: safeMeta,
-        storage: crossDomainStorage
+        storage: crossDomainStorage,
       })
 
       // Patch the engine's cleanupDuplicatePairings to a no-op to avoid benign WC issue
-      const engine: any = (c as any).engine || c
+      const engine: {
+        cleanupDuplicatePairings?: () => Promise<void>
+        onSessionSettleRequest?: (...a: unknown[]) => Promise<unknown>
+      } = (((c as unknown as { engine?: unknown }).engine as unknown) || (c as unknown)) as {
+        cleanupDuplicatePairings?: () => Promise<void>
+        onSessionSettleRequest?: (...a: unknown[]) => Promise<unknown>
+      }
       if (engine && typeof engine.cleanupDuplicatePairings === 'function') {
-        engine.cleanupDuplicatePairings = async () => { /* no-op: prevents spurious 'No matching key' */ }
+        engine.cleanupDuplicatePairings = async () => {
+          /* no-op: prevents spurious 'No matching key' */
+        }
       }
       // Also guard onSessionSettleRequest to ignore this specific benign error
       if (engine && typeof engine.onSessionSettleRequest === 'function') {
         const origSettle = engine.onSessionSettleRequest.bind(engine)
-        engine.onSessionSettleRequest = async (...args: any[]) => {
+        engine.onSessionSettleRequest = async (...args: unknown[]) => {
           try {
             return await origSettle(...args)
-          } catch (error: any) {
+          } catch (error) {
             const msg = String(error?.message || error || '')
             if (msg.includes('No matching key') && msg.includes('pairing')) {
               // Ignore and continue; state will be reconciled by subsequent events
@@ -228,19 +278,23 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
       setClient(c)
       await subscribeToEvents(c)
       await checkPersistedState(c)
-    } finally { setIsInitializing(false) }
+    } finally {
+      setIsInitializing(false)
+    }
   }, [subscribeToEvents, checkPersistedState])
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (client && (client as any)._cleanup) {
-        (client as any)._cleanup()
+      if (client && (client as unknown as { _cleanup?: () => void })._cleanup) {
+        ;(client as unknown as { _cleanup?: () => void })._cleanup?.()
       }
     }
   }, [client])
 
-  useEffect(() => { if (!client) createClient() }, [client, createClient])
+  useEffect(() => {
+    if (!client) createClient()
+  }, [client, createClient])
 
   // Sync session state across tabs/subdomains
   useEffect(() => {
@@ -274,18 +328,21 @@ export function WalletConnectProvider({ children }: PropsWithChildren) {
     }
   }, [client, session, onSessionConnected, reset])
 
-  const value = useMemo(() => ({
-    chainId: CHAIN_ID,
-    client,
-    session,
-    connect,
-    disconnect,
-    reset,
-    isInitializing,
-    pairings,
-    accounts,
-    error,
-  }), [client, session, connect, disconnect, reset, isInitializing, pairings, accounts, error])
+  const value = useMemo(
+    () => ({
+      chainId: CHAIN_ID,
+      client,
+      session,
+      connect,
+      disconnect,
+      reset,
+      isInitializing,
+      pairings,
+      accounts,
+      error,
+    }),
+    [client, session, connect, disconnect, reset, isInitializing, pairings, accounts, error],
+  )
 
   const handleCloseModal = useCallback(() => {
     setShowModal(false)
@@ -313,4 +370,3 @@ export function useWalletConnect() {
   if (!ctx) throw new Error('useWalletConnect must be used within WalletConnectProvider')
   return ctx
 }
-

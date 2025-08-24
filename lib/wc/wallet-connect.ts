@@ -52,8 +52,9 @@ export const METADATA: CoreTypes.Metadata = {
   description: 'Chia NFT Leaderboard & Marketplace',
   url: typeof window !== 'undefined' ? window.location.origin : 'https://go4.me',
   icons: [
-    typeof window !== 'undefined' ? `${window.location.origin}/collection-icon.png` : 'https://go4.me/collection-icon.png',
-    typeof window !== 'undefined' ? `${window.location.origin}/favicon.ico` : 'https://go4.me/favicon.ico'
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/collection-icon.png`
+      : 'https://go4.me/collection-icon.png',
+    typeof window !== 'undefined' ? `${window.location.origin}/favicon.ico` : 'https://go4.me/favicon.ico',
   ],
 }
-

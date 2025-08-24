@@ -14,7 +14,15 @@ type Props = {
   labelWhenSage?: string
 }
 
-export function TakeOfferButton({ offerId, children, className, title, ariaLabel, labelDefault = 'Dexie', labelWhenSage = 'Take Offer' }: Props) {
+export function TakeOfferButton({
+  offerId,
+  children,
+  className,
+  title,
+  ariaLabel,
+  labelDefault = 'Dexie',
+  labelWhenSage = 'Take Offer',
+}: Props) {
   const { chiaTakeOffer } = useJsonRpc()
   const { session, connect, reset } = useWalletConnect()
   const { isAvailable: gobyAvailable, isConnected: gobyConnected, connect: gobyConnect } = useGoby()
@@ -35,11 +43,14 @@ export function TakeOfferButton({ offerId, children, className, title, ariaLabel
   const isConnectedAny = (gobyConnected && !isMobile) || !!session
 
   async function handleClick() {
-    setBusy(true); setResultId(null)
+    setBusy(true)
+    setResultId(null)
     try {
       // Prefer connecting Goby if available and not on mobile
       if (gobyAvailable && !gobyConnected && !isMobile) {
-        try { await gobyConnect() } catch {}
+        try {
+          await gobyConnect()
+        } catch {}
       }
       // Otherwise, ensure WalletConnect session exists
       if (!(gobyConnected && !isMobile) && !session) {
@@ -65,12 +76,12 @@ export function TakeOfferButton({ offerId, children, className, title, ariaLabel
 
       const r = await chiaTakeOffer({ offer })
       // r may be null/undefined if rejected in some wallets; guard access
-      if (r && (r as any).id) {
-        setResultId((r as any).id)
+      if (r && (r as { id?: string }).id) {
+        setResultId((r as { id?: string }).id || null)
         showToast('Offer accepted successfully! Transaction submitted to the blockchain.', 'success')
       }
-    } catch (e: any) {
-      const msg = (e?.message || String(e))
+    } catch (e) {
+      const msg = e?.message || String(e)
       // If user rejected or closed the request, quietly reset UI back to normal
       if (!/reject|denied|cancel|close/i.test(msg)) {
         // Show user-friendly error messages via toast
@@ -124,17 +135,20 @@ export function TakeOfferButton({ offerId, children, className, title, ariaLabel
         aria-label={ariaLabel}
         style={{ cursor: busy ? 'default' : 'pointer' }}
       >
-        {busy ? 'Taking…'
-          : children
-            ? <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                {children}
-                <span style={{ marginLeft: 4 }}>{isConnectedAny ? labelWhenSage : labelDefault}</span>
-              </span>
-            : (isConnectedAny ? labelWhenSage : labelDefault)
-        }
+        {busy ? (
+          'Taking…'
+        ) : children ? (
+          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            {children}
+            <span style={{ marginLeft: 4 }}>{isConnectedAny ? labelWhenSage : labelDefault}</span>
+          </span>
+        ) : isConnectedAny ? (
+          labelWhenSage
+        ) : (
+          labelDefault
+        )}
       </button>
       {resultId && <span style={{ fontSize: 12 }}>Tx: {resultId}</span>}
     </div>
   )
 }
-

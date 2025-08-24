@@ -69,36 +69,30 @@ const nextConfig = {
     'go4.me',
     '*.go4.me',
     'go4.fail',
-    '*.go4.fail'
+    '*.go4.fail',
   ],
   async headers() {
     return [
       {
         source: '/collection-icon.png',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
-        ]
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
         source: '/collection-banner.png',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
-        ]
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
         source: '/fonts/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
-        ]
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
       {
         source: '/(.*)',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-XSS-Protection', value: '1; mode=block' }
-        ]
-      }
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+        ],
+      },
     ]
   },
   images: {
@@ -114,9 +108,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'go4.fail', pathname: '/**' },
       { protocol: 'https', hostname: 'raw.githubusercontent.com', pathname: '/**' },
       { protocol: 'https', hostname: 'mintgarden.io', pathname: '/**' },
-      { protocol: 'https', hostname: 'assets.mainnet.mintgarden.io', pathname: '/**' }
-    ]
-  }
+      { protocol: 'https', hostname: 'assets.mainnet.mintgarden.io', pathname: '/**' },
+    ],
+  },
 }
 
 module.exports = nextConfig

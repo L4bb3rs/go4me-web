@@ -31,7 +31,11 @@ export function middleware(req) {
   }
 
   // username.go4.me OR username.localhost
-  if (normalizedHost.endsWith('.go4.me') || normalizedHost.endsWith('.go4.fail') || normalizedHost.endsWith('.localhost')) {
+  if (
+    normalizedHost.endsWith('.go4.me') ||
+    normalizedHost.endsWith('.go4.fail') ||
+    normalizedHost.endsWith('.localhost')
+  ) {
     const parts = normalizedHost.split('.')
     const sub = parts[0]
     if (sub && sub !== 'go4' && sub !== 'localhost') {

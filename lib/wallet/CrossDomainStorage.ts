@@ -30,7 +30,7 @@ class CrossDomainStorage implements IKeyValueStorage {
     return ''
   }
 
-  async getItem<T = any>(key: string): Promise<T | undefined> {
+  async getItem<T = unknown>(key: string): Promise<T | undefined> {
     const value = this.getCookie(key)
     if (value === undefined) return undefined
 
@@ -42,7 +42,7 @@ class CrossDomainStorage implements IKeyValueStorage {
     }
   }
 
-  async setItem<T = any>(key: string, value: T): Promise<void> {
+  async setItem<T = unknown>(key: string, value: T): Promise<void> {
     const stringValue = typeof value === 'string' ? value : JSON.stringify(value)
     this.setCookie(key, stringValue)
   }
@@ -55,7 +55,7 @@ class CrossDomainStorage implements IKeyValueStorage {
     return this.getCookieKeys()
   }
 
-  async getEntries<T = any>(): Promise<[string, T][]> {
+  async getEntries<T = unknown>(): Promise<[string, T][]> {
     const keys = await this.getKeys()
     const entries: [string, T][] = []
 
@@ -90,7 +90,9 @@ class CrossDomainStorage implements IKeyValueStorage {
       const bytes = new Uint8Array(binary.length)
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
       return new TextDecoder().decode(bytes)
-    } catch { return null }
+    } catch {
+      return null
+    }
   }
 
   private readCookieByName(exactName: string): string | undefined {
@@ -109,7 +111,11 @@ class CrossDomainStorage implements IKeyValueStorage {
     // Try single cookie value first
     const single = this.readCookieByName(enc)
     if (single !== undefined) {
-      try { return decodeURIComponent(single) } catch { return single }
+      try {
+        return decodeURIComponent(single)
+      } catch {
+        return single
+      }
     }
 
     // Try chunked cookies
@@ -120,7 +126,11 @@ class CrossDomainStorage implements IKeyValueStorage {
       for (let i = 0; i < partsCount; i++) {
         acc += this.readCookieByName(`${enc}.p${i}`) || ''
       }
-      try { return decodeURIComponent(acc) } catch { return acc }
+      try {
+        return decodeURIComponent(acc)
+      } catch {
+        return acc
+      }
     }
 
     return undefined
@@ -130,10 +140,10 @@ class CrossDomainStorage implements IKeyValueStorage {
     if (typeof document === 'undefined') return
 
     const encName = this.encodeKeyName(name)
-    const expires = new Date(); expires.setTime(expires.getTime() + (30 * 24 * 60 * 60 * 1000)) // 30 days
+    const expires = new Date()
+    expires.setTime(expires.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days
     const secureFlag = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
     const domainAttr = this.domain ? `; domain=${this.domain}` : ''
-
 
     // Clear any existing cookies for this key
     this.deleteCookie(name)
@@ -267,5 +277,6 @@ export { CrossDomainStorage }
 
 // Debug function for development
 if (typeof window !== 'undefined') {
-  (window as any).debugWalletStorage = () => crossDomainStorage.debugStorage()
+  ;(window as unknown as { debugWalletStorage?: () => void }).debugWalletStorage = () =>
+    crossDomainStorage.debugStorage()
 }

@@ -16,7 +16,12 @@ export const JsonRpcContext = createContext<JsonRpcShape>({} as JsonRpcShape)
 
 export function JsonRpcProvider({ children }: PropsWithChildren) {
   const { client, session, chainId } = useWalletConnect()
-  const { isAvailable: gobyAvailable, isConnected: gobyConnected, request: gobyRequest, connect: gobyConnect } = useGoby()
+  const {
+    isAvailable: gobyAvailable,
+    isConnected: gobyConnected,
+    request: gobyRequest,
+    connect: gobyConnect,
+  } = useGoby()
 
   // Mobile detection - disable Goby functionality on mobile
   const [isMobile, setIsMobile] = useState(false)
@@ -44,30 +49,30 @@ export function JsonRpcProvider({ children }: PropsWithChildren) {
         request: { method, params },
       })
       if (result && typeof result === 'object' && 'error' in result) {
-        throw new Error(JSON.stringify((result as any).error))
+        throw new Error(JSON.stringify((result as { error?: unknown }).error))
       }
       return result as T
-    } catch (e: any) {
-      const msg = (e?.message || '').toLowerCase()
-      if (msg.includes('user rejected') || msg.includes('rejected') || msg.includes('denied')) throw new Error('Request rejected in wallet')
-      if (msg.includes('no matching key') || msg.includes('pairing') || msg.includes('history:')) throw new Error('Wallet session not found. Please reconnect.')
-      throw e
+    } catch (e) {
+      const msg = ((e as Error)?.message || '').toLowerCase()
+      if (msg.includes('user rejected') || msg.includes('rejected') || msg.includes('denied'))
+        throw new Error('Request rejected in wallet')
+      if (msg.includes('no matching key') || msg.includes('pairing') || msg.includes('history:'))
+        throw new Error('Wallet session not found. Please reconnect.')
+      throw e as Error
     }
   }
 
   async function chiaTakeOffer(data: ChiaTakeOfferRequest) {
     // If Goby is available but not connected, try to connect once transparently (desktop only)
     if (gobyAvailable && !gobyConnected && !isMobile) {
-      try { await gobyConnect() } catch {}
+      try {
+        await gobyConnect()
+      } catch {}
     }
     return await request<{ id: string }>(ChiaMethod.TakeOffer, data)
   }
 
-  return (
-    <JsonRpcContext.Provider value={{ chiaTakeOffer }}>
-      {children}
-    </JsonRpcContext.Provider>
-  )
+  return <JsonRpcContext.Provider value={{ chiaTakeOffer }}>{children}</JsonRpcContext.Provider>
 }
 
 export function useJsonRpc() {
@@ -75,4 +80,3 @@ export function useJsonRpc() {
   if (!ctx) throw new Error('useJsonRpc must be used within JsonRpcProvider')
   return ctx
 }
-
